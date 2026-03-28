@@ -496,22 +496,39 @@ var TABS = [
   { id:'mechanics',   label:'How It Works'   },
 ];
 var navEl = document.getElementById('navTabs');
+
+function switchTab(tabId) {
+  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  var btn = document.querySelector('.nav-tab[data-page="'+tabId+'"]');
+  if (btn) btn.classList.add('active');
+  var page = document.getElementById('page-'+tabId);
+  if (page) page.classList.add('active');
+  if (tabId === 'forest' && isoTreeEls.length === 0) buildIsoForest();
+  if (tabId === 'collection') buildCollectionGrid();
+  if (tabId === 'gallery') buildGallery();
+  // Update URL hash without scrolling
+  history.replaceState(null, '', '#' + tabId);
+}
+
 TABS.forEach(function(tab) {
   var btn = document.createElement('button');
   btn.className = 'nav-tab' + (tab.id === 'daily' ? ' active' : '');
   btn.dataset.page = tab.id;
   btn.textContent = tab.label;
-  btn.addEventListener('click', function() {
-    document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
-    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-    btn.classList.add('active');
-    document.getElementById('page-'+tab.id).classList.add('active');
-    if (tab.id === 'forest' && isoTreeEls.length === 0) buildIsoForest();
-    if (tab.id === 'collection') buildCollectionGrid();
-    if (tab.id === 'gallery') buildGallery();
-  });
+  btn.addEventListener('click', function() { switchTab(tab.id); });
   navEl.appendChild(btn);
 });
+
+// Handle hash on load and back/forward navigation
+function handleHash() {
+  var hash = location.hash.replace('#', '') || 'daily';
+  var valid = TABS.some(function(t){ return t.id === hash; });
+  if (valid) switchTab(hash);
+}
+window.addEventListener('hashchange', handleHash);
+// Defer initial hash routing until after DOM is ready
+setTimeout(handleHash, 50);
 
 // ── TOAST ─────────────────────────────────────────────────
 function showToast(msg) {
@@ -889,11 +906,7 @@ lbData.forEach(function(p) {
   vBtn.className = 'visit-btn';
   vBtn.textContent = 'Visit Forest';
   vBtn.addEventListener('click', function() {
-    document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
-    document.querySelectorAll('.page').forEach(function(pp){pp.classList.remove('active');});
-    document.querySelector('[data-page="forest"]').classList.add('active');
-    document.getElementById('page-forest').classList.add('active');
-    if (isoTreeEls.length === 0) buildIsoForest();
+    switchTab('forest');
     setTimeout(function(){
       var iso = document.querySelector('.iso-wrap');
       if (iso) iso.scrollIntoView({behavior:'smooth',block:'center'});
@@ -960,13 +973,7 @@ var youVisit = document.createElement('button');
 youVisit.className = 'visit-btn';
 youVisit.style.cssText = 'padding:6px 12px;background:#0f172a;border:1px solid #34d399;border-radius:8px;color:#34d399;font-size:0.68rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;';
 youVisit.textContent = 'Visit Forest';
-youVisit.addEventListener('click', function() {
-  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
-  document.querySelectorAll('.page').forEach(function(pp){pp.classList.remove('active');});
-  document.querySelector('[data-page="forest"]').classList.add('active');
-  document.getElementById('page-forest').classList.add('active');
-  if (isoTreeEls.length === 0) buildIsoForest();
-});
+youVisit.addEventListener('click', function() { switchTab('forest'); });
 youRow.appendChild(youVisit);
 lbWrap.appendChild(youRow);
 
