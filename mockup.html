@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tree Collection — Interactive Demo</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0f172a; color: #e2e8f0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.nav-tabs {
+  position: sticky; top: 0; z-index: 100;
+  background: #0a0f1a; border-bottom: 1px solid #1e293b;
+  display: flex; gap: 0; overflow-x: auto; padding: 0 20px;
+}
+.nav-tab {
+  padding: 14px 20px; font-size: 0.82rem; font-weight: 600;
+  color: #64748b; cursor: pointer; border-bottom: 2px solid transparent;
+  white-space: nowrap; transition: all 0.2s; user-select: none;
+  background: none; border-left: none; border-right: none; border-top: none;
+}
+.nav-tab:hover { color: #cbd5e1; }
+.nav-tab.active { color: #34d399; border-bottom-color: #34d399; }
+.page { display: none; padding: 28px 20px 60px; max-width: 1100px; margin: 0 auto; }
+.page.active { display: block; }
+.sec-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; padding-bottom: 10px; border-bottom: 1px solid #1e293b; }
+.sec-desc { color: #64748b; font-size: 0.78rem; margin-bottom: 18px; }
+.rarity { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 0.62rem; font-weight: 700; }
+.r-com { background: #374151; color: #d1d5db; }
+.r-unc { background: #064e3b; color: #34d399; }
+.r-rar { background: #1e3a5f; color: #60a5fa; }
+.r-epi { background: #3b0764; color: #c084fc; }
+.r-leg { background: #78350f; color: #fbbf24; }
+.r-myt { background: #4c0519; color: #fb7185; }
+.daily-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+@media (max-width: 760px) { .daily-layout { grid-template-columns: 1fr; } }
+.week-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 20px; }
+.day-slot { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 10px 6px; text-align: center; transition: all 0.2s; }
+.day-slot.today { border-color: #34d399; background: #0d2318; }
+.day-slot.planted { border-color: #22c55e; }
+.day-slot .day-label { font-size: 0.6rem; color: #64748b; text-transform: uppercase; margin-bottom: 6px; }
+.day-slot .day-tree { height: 70px; display: flex; align-items: flex-end; justify-content: center; }
+.day-slot .day-pts { font-size: 0.62rem; color: #64748b; margin-top: 4px; }
+.day-slot.today .day-pts { color: #34d399; }
+.tree-preview {
+  height: 150px; background: linear-gradient(180deg, #0a0f1a 0%, #0f172a 60%, #1a1f2e 100%);
+  border-radius: 12px; display: flex; align-items: flex-end; justify-content: center;
+  padding: 16px; margin-bottom: 14px; position: relative; overflow: hidden;
+}
+.tree-preview::after { content: ''; position: absolute; bottom: 16px; left: 15%; right: 15%; height: 1px; background: linear-gradient(90deg, transparent, #334155, transparent); }
+.progress-bar-wrap { margin-bottom: 14px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 6px; }
+.progress-bar { height: 8px; background: #334155; border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #22c55e, #34d399); border-radius: 4px; transition: width 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+.log-btn {
+  width: 100%; padding: 12px; border-radius: 10px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, #22c55e, #34d399); color: #0a0f1a;
+  font-size: 0.85rem; font-weight: 800; letter-spacing: 0.02em;
+  transition: all 0.15s; box-shadow: 0 4px 16px rgba(52,211,153,0.3);
+}
+.log-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(52,211,153,0.4); }
+.species-select { width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; font-size: 0.8rem; margin-bottom: 12px; cursor: pointer; }
+.stage-indicator { display: flex; gap: 6px; margin-bottom: 12px; justify-content: center; }
+.stage-dot { height: 4px; flex: 1; border-radius: 2px; background: #334155; transition: background 0.3s; }
+.stage-dot.active { background: #34d399; }
+.stage-dot.done { background: #22c55e; }
+.toast {
+  position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-80px);
+  background: linear-gradient(135deg, #064e3b, #0d2318); border: 1px solid #22c55e;
+  border-radius: 14px; padding: 14px 24px; font-size: 0.85rem; font-weight: 700;
+  color: #34d399; box-shadow: 0 8px 32px rgba(52,211,153,0.3); z-index: 999;
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none;
+  white-space: nowrap; text-align: center;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.stats-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.stat-box { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 14px 12px; text-align: center; }
+.stat-box .n { font-size: 1.5rem; font-weight: 800; line-height: 1; }
+.stat-box .l { font-size: 0.65rem; color: #64748b; margin-top: 3px; }
+.iso-wrap { border-radius: 20px; overflow: hidden; border: 1px solid #334155; background: #0a1628; margin-bottom: 0; }
+.iso-container { width: 100%; display: flex; justify-content: center; align-items: flex-end; padding: 60px 20px 0; min-height: 420px; overflow: hidden; background: linear-gradient(180deg, #c8eaf5 0%, #daf2e4 50%, #cceacc 100%); position: relative; }
+.iso-scene { position: relative; width: 600px; height: 400px; flex-shrink: 0; }
+.iso-tile { position: absolute; left: 50%; bottom: 0; width: 540px; height: 320px; transform: translateX(-50%); }
+.iso-tree { position: absolute; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); transform-origin: bottom center; cursor: pointer; }
+.iso-tree.hidden { opacity: 0; transform: scale(0) translateY(30px); }
+.iso-tree.visible { opacity: 1; transform: scale(1) translateY(0); }
+.iso-tree:hover { transform: scale(1.1) translateY(-4px); }
+.iso-controls { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; background: #1e293b; border-top: 1px solid #334155; gap: 12px; }
+.iso-slider { flex: 1; -webkit-appearance: none; height: 6px; border-radius: 3px; background: #334155; outline: none; }
+.iso-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #34d399, #22c55e); cursor: pointer; border: 3px solid #0f172a; box-shadow: 0 2px 8px rgba(52,211,153,0.4); }
+.iso-count { font-size: 1.4rem; font-weight: 800; color: #34d399; min-width: 70px; text-align: right; line-height: 1; }
+.iso-count small { font-size: 0.6rem; color: #64748b; display: block; font-weight: 400; margin-top: 2px; }
+.iso-label { font-size: 0.75rem; color: #94a3b8; white-space: nowrap; }
+.collection-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+@media (max-width: 700px) { .collection-grid { grid-template-columns: repeat(4, 1fr); } }
+.col-card { background: #1e293b; border: 2px solid #334155; border-radius: 12px; padding: 10px 8px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
+.col-card:hover:not(.locked) { border-color: #475569; transform: translateY(-2px); }
+.col-card.selected { border-color: #34d399; box-shadow: 0 0 0 2px rgba(52,211,153,0.25); }
+.col-card.locked { opacity: 0.4; cursor: default; filter: grayscale(1); }
+.col-card .col-tree { height: 60px; display: flex; align-items: flex-end; justify-content: center; margin-bottom: 6px; }
+.col-card .col-name { font-size: 0.6rem; font-weight: 600; color: #cbd5e1; margin-bottom: 4px; line-height: 1.3; }
+.col-card .col-pts { font-size: 0.55rem; color: #64748b; margin-top: 2px; }
+.lb-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #1e293b; border: 1px solid #334155; border-radius: 12px; margin-bottom: 8px; transition: all 0.2s; }
+.lb-row:hover { border-color: #475569; }
+.lb-row.gold { border-color: #fbbf24; background: linear-gradient(90deg, #78350f22, #1e293b); }
+.lb-row.silver { border-color: #94a3b8; background: linear-gradient(90deg, #37415122, #1e293b); }
+.lb-row.bronze { border-color: #d97706; background: linear-gradient(90deg, #78350f15, #1e293b); }
+.lb-rank { font-size: 1.1rem; font-weight: 800; width: 28px; text-align: center; }
+.lb-avatar { width: 36px; height: 36px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; font-weight: 700; }
+.lb-info { flex: 1; min-width: 0; }
+.lb-name { font-size: 0.85rem; font-weight: 600; }
+.lb-detail { font-size: 0.65rem; color: #64748b; }
+.lb-bar { height: 3px; border-radius: 2px; background: #334155; margin-top: 5px; overflow: hidden; }
+.lb-bar-fill { height: 100%; border-radius: 2px; background: #34d399; }
+.lb-trees { text-align: right; flex-shrink: 0; }
+.lb-trees .num { font-size: 1.1rem; font-weight: 800; color: #34d399; }
+.lb-trees .lbl { font-size: 0.6rem; color: #64748b; }
+.visit-btn { padding: 6px 12px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #94a3b8; font-size: 0.68rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
+.visit-btn:hover { border-color: #34d399; color: #34d399; }
+.mech-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.mech { background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 20px; }
+.mech h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+.mech p { font-size: 0.8rem; color: #94a3b8; line-height: 1.55; }
+.mech-flow { padding: 0; list-style: none; margin-top: 10px; }
+.mech-flow li { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px solid #1e293b; font-size: 0.78rem; color: #cbd5e1; }
+.mech-flow .num { width: 22px; height: 22px; border-radius: 50%; background: #334155; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.68rem; }
+.mech-flow small { display: block; color: #64748b; font-size: 0.65rem; margin-top: 2px; }
+.drop-table { width: 100%; margin-top: 8px; font-size: 0.76rem; }
+.drop-table div { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #1e293b; }
+.season-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-top: 10px; font-size: 0.7rem; text-align: center; }
+.season-grid > div { border-radius: 8px; padding: 9px 5px; }
+.variants { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
+.vchip { font-size: 0.6rem; padding: 2px 8px; border-radius: 99px; border: 1px solid #475569; color: #cbd5e1; background: #0f172a; }
+.impact { background: linear-gradient(135deg, #064e3b, #1e293b); border: 1px solid #34d399; border-radius: 16px; padding: 24px; text-align: center; margin: 24px 0; }
+.impact h3 { font-size: 1.1rem; color: #34d399; margin-bottom: 6px; }
+.impact p { color: #94a3b8; font-size: 0.82rem; max-width: 560px; margin: 0 auto; line-height: 1.55; }
+.panel { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 20px; }
+@keyframes sway { 0%,100% { transform: rotate(-1deg); } 50% { transform: rotate(1deg); } }
+@keyframes sparkle { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+@keyframes grow-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+.anim-sway { animation: sway 4s ease-in-out infinite; transform-origin: bottom center; }
+.anim-sparkle { animation: sparkle 1.5s ease-in-out infinite; }
+.anim-grow { animation: grow-pulse 4s ease-in-out infinite; }
+/* Gallery */
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.gallery-card {
+  background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 18px;
+  transition: all 0.25s;
+}
+.gallery-card:hover { border-color: #475569; transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
+.gallery-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+.gallery-name { font-size: 1rem; font-weight: 700; }
+.gallery-cost { font-size: 0.7rem; color: #64748b; margin-bottom: 10px; }
+.gallery-cost b { color: #fbbf24; }
+.gallery-stages {
+  display: flex; justify-content: space-around; align-items: flex-end;
+  min-height: 120px; background: linear-gradient(180deg, #0a0f1a, #0f172a 60%, #1a1f2e);
+  border-radius: 12px; padding: 16px 6px 10px; margin-bottom: 10px; position: relative;
+}
+.gallery-stages::after {
+  content: ''; position: absolute; bottom: 14px; left: 10%; right: 10%;
+  height: 1px; background: linear-gradient(90deg, transparent, #334155, transparent);
+}
+.gallery-stage { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.gallery-stage-lbl { font-size: 0.55rem; color: #475569; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; }
+.gallery-desc { font-size: 0.75rem; color: #94a3b8; line-height: 1.4; }
+</style>
+<svg width="0" height="0" aria-hidden="true">
+  <defs>
+    <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.25"/></filter>
+  </defs>
+</svg>
+</head>
+<body>
+
+<div class="nav-tabs" id="navTabs"></div>
+<div id="toast" class="toast"></div>
+
+<div id="page-daily" class="page active">
+  <div class="sec-title" style="color:#34d399">Daily Activity View</div>
+  <p class="sec-desc">Log activities to grow today's tree. Hit 75% to plant it in your forest.</p>
+  <div class="week-row" id="weekRow"></div>
+  <div class="daily-layout">
+    <div class="panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div style="font-size:0.9rem;font-weight:700;">Today's Tree</div>
+        <div id="activeRarity"></div>
+      </div>
+      <div class="tree-preview"><div id="treeStageDisplay" style="display:flex;align-items:flex-end;justify-content:center;"></div></div>
+      <div class="stage-indicator" id="stageIndicator">
+        <div class="stage-dot"></div><div class="stage-dot"></div><div class="stage-dot"></div><div class="stage-dot"></div>
+      </div>
+      <div style="text-align:center;font-size:0.72rem;color:#64748b;margin-bottom:14px;" id="stageLabel">Seed stage</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-label">
+          <span id="progressText">Today: 0 / 10 pts</span>
+          <span id="progressPct" style="color:#34d399;font-weight:700;">0%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      </div>
+      <button class="log-btn" id="logBtn">+ Log Activity (+1 pt)</button>
+      <div style="text-align:center;font-size:0.65rem;color:#475569;margin-top:8px;">Each activity = 1 pt &nbsp;·&nbsp; Daily target: 10 pts</div>
+    </div>
+    <div>
+      <div class="panel" style="margin-bottom:14px;">
+        <div style="font-size:0.85rem;font-weight:700;margin-bottom:10px;">Active Species</div>
+        <select class="species-select" id="speciesSelect"></select>
+        <div style="font-size:0.85rem;font-weight:700;margin-bottom:8px;margin-top:14px;">This Week</div>
+        <div style="font-size:0.75rem;color:#64748b;line-height:2;">
+          <div style="display:flex;justify-content:space-between;"><span>Trees planted:</span><span style="color:#34d399;font-weight:700;" id="weeklyTrees">0</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>Species unlocked:</span><span style="color:#a78bfa;font-weight:700;" id="weeklySpecies">2</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>Lifetime pts:</span><span style="color:#fbbf24;font-weight:700;" id="weeklyPts">0</span></div>
+        </div>
+      </div>
+      <div class="panel" style="background:#0f172a;">
+        <div style="font-size:0.7rem;font-weight:700;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Next Unlock</div>
+        <div id="unlockInfo" style="font-size:0.72rem;color:#94a3b8;line-height:1.8;"></div>
+      </div>
+      <button id="resetBtn" style="width:100%;margin-top:12px;padding:8px;background:transparent;border:1px solid #334155;border-radius:8px;color:#64748b;font-size:0.72rem;cursor:pointer;">Reset Day (Demo)</button>
+    </div>
+  </div>
+</div>
+
+<div id="page-forest" class="page">
+  <div class="sec-title" style="color:#22c55e">My Forest</div>
+  <p class="sec-desc">Your cumulative planted trees form this isometric forest. Drag the slider or plant trees from Daily Activity.</p>
+  <div class="stats-bar">
+    <div class="stat-box"><div class="n" style="color:#34d399" id="statTrees">0</div><div class="l">Total Trees</div></div>
+    <div class="stat-box"><div class="n" style="color:#a78bfa" id="statSpecies">2</div><div class="l">Species Collected</div></div>
+    <div class="stat-box"><div class="n" style="color:#fbbf24" id="statPts">0</div><div class="l">Lifetime Points</div></div>
+  </div>
+  <div class="iso-wrap">
+    <div class="iso-container">
+      <div class="iso-scene" id="isoScene">
+        <svg class="iso-tile" viewBox="0 0 540 320" fill="none">
+          <defs>
+            <linearGradient id="dirtL" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9B7B4A"/><stop offset="100%" stop-color="#6B4F2D"/></linearGradient>
+            <linearGradient id="dirtR" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7B5B3A"/><stop offset="100%" stop-color="#5A4020"/></linearGradient>
+          </defs>
+          <path d="M0 160 L270 280 L270 320 L0 200 Z" fill="url(#dirtL)"/>
+          <g fill="#5a4020" opacity="0.4"><ellipse cx="40" cy="185" rx="5" ry="3"/><ellipse cx="80" cy="200" rx="4" ry="2.5"/><ellipse cx="120" cy="215" rx="5" ry="3"/><ellipse cx="160" cy="230" rx="4" ry="2.5"/><ellipse cx="200" cy="245" rx="5" ry="3"/><ellipse cx="240" cy="260" rx="4" ry="2.5"/></g>
+          <path d="M540 160 L270 280 L270 320 L540 200 Z" fill="url(#dirtR)"/>
+          <g fill="#4a3520" opacity="0.4"><ellipse cx="500" cy="185" rx="5" ry="3"/><ellipse cx="460" cy="200" rx="4" ry="2.5"/><ellipse cx="420" cy="215" rx="5" ry="3"/><ellipse cx="380" cy="230" rx="4" ry="2.5"/><ellipse cx="340" cy="245" rx="5" ry="3"/><ellipse cx="300" cy="260" rx="4" ry="2.5"/></g>
+          <path d="M270 40 L540 160 L270 280 L0 160 Z" fill="#7bc462"/>
+          <path d="M270 40 L540 160 L270 280 L0 160 Z" fill="#8dd470" opacity="0.3"/>
+          <g stroke="#6ab855" stroke-width="0.8" opacity="0.2">
+            <line x1="54" y1="107" x2="324" y2="227"/><line x1="108" y1="80" x2="378" y2="200"/>
+            <line x1="162" y1="53" x2="432" y2="173"/><line x1="216" y1="67" x2="486" y2="187"/>
+            <line x1="324" y1="107" x2="54" y2="227"/><line x1="378" y1="80" x2="108" y2="200"/>
+            <line x1="432" y1="53" x2="162" y2="173"/><line x1="486" y1="67" x2="216" y2="187"/>
+          </g>
+          <g fill="#5a9a4a">
+            <ellipse cx="8" cy="162" rx="7" ry="3"/><ellipse cx="30" cy="172" rx="6" ry="2.5"/><ellipse cx="55" cy="183" rx="7" ry="3"/><ellipse cx="85" cy="196" rx="6" ry="2.5"/><ellipse cx="115" cy="208" rx="7" ry="3"/><ellipse cx="150" cy="222" rx="6" ry="2.5"/><ellipse cx="185" cy="235" rx="7" ry="3"/><ellipse cx="220" cy="248" rx="6" ry="2.5"/><ellipse cx="250" cy="260" rx="7" ry="3"/>
+            <ellipse cx="532" cy="162" rx="7" ry="3"/><ellipse cx="510" cy="172" rx="6" ry="2.5"/><ellipse cx="485" cy="183" rx="7" ry="3"/><ellipse cx="455" cy="196" rx="6" ry="2.5"/><ellipse cx="425" cy="208" rx="7" ry="3"/><ellipse cx="390" cy="222" rx="6" ry="2.5"/><ellipse cx="355" cy="235" rx="7" ry="3"/><ellipse cx="320" cy="248" rx="6" ry="2.5"/><ellipse cx="290" cy="260" rx="7" ry="3"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="iso-controls">
+      <div class="iso-label">Trees planted:</div>
+      <input type="range" class="iso-slider" id="isoSlider" min="0" max="40" value="0">
+      <div class="iso-count" id="isoCount">0<small>trees</small></div>
+    </div>
+  </div>
+</div>
+
+<div id="page-collection" class="page">
+  <div class="sec-title" style="color:#a78bfa">Collection</div>
+  <p class="sec-desc">Click an unlocked species to set it as your active tree. Locked species require more points.</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;font-size:0.72rem;align-items:center;">
+    <span style="color:#64748b;font-weight:600;">Rarity:</span>
+    <span class="rarity r-com">Common</span>
+    <span class="rarity r-unc">Uncommon</span>
+    <span class="rarity r-rar">Rare</span>
+    <span class="rarity r-epi">Epic</span>
+    <span class="rarity r-leg">Legendary</span>
+    <span class="rarity r-myt">Mythic</span>
+  </div>
+  <div class="collection-grid" id="collectionGrid"></div>
+</div>
+
+<div id="page-leaderboard" class="page">
+  <div class="sec-title" style="color:#fbbf24">Forest Leaderboard</div>
+  <p class="sec-desc">Who has the biggest forest? Team competition drives consistent pledge completion.</p>
+  <div id="lbWrap"></div>
+</div>
+
+<div id="page-gallery" class="page">
+  <div class="sec-title" style="color:#a78bfa">Species Gallery</div>
+  <p class="sec-desc">All 23 tree species with their 4 growth stages. See how each tree evolves from seed to full.</p>
+  <div id="galleryGrid"></div>
+</div>
+
+<div id="page-mechanics" class="page">
+  <div class="sec-title" style="color:#22d3ee">How It Works</div>
+  <p class="sec-desc">Six proven engagement loops from the best habit-gamification apps</p>
+  <div class="mech-grid">
+    <div class="mech"><h3 style="color:#fbbf24">Points Economy</h3><p>Earn points from activities. Accumulate to unlock rarer species.</p><ol class="mech-flow"><li><span class="num">1</span><div>Log activities (sets, openings, closings, closed)<small>1 pt per activity</small></div></li><li><span class="num">2</span><div>Hit 75%+ daily pledge = tree planted in your forest</div></li><li><span class="num">3</span><div>Accumulate lifetime points to unlock rarer species<small>0 pts (starter) to 3,000 pts (Mythic)</small></div></li></ol></div>
+    <div class="mech"><h3 style="color:#c084fc">Biome Variants</h3><p>Each species x 5 color variants = 120+ collectibles.</p><div class="variants"><span class="vchip" style="border-color:#34d399;color:#34d399">Standard</span><span class="vchip" style="border-color:#60a5fa;color:#60a5fa">Frost</span><span class="vchip" style="border-color:#fbbf24;color:#fbbf24">Golden</span><span class="vchip" style="border-color:#f472b6;color:#f472b6">Sakura</span><span class="vchip" style="border-color:#a78bfa;color:#a78bfa">Phantom</span></div></div>
+    <div class="mech"><h3 style="color:#f472b6">Mystery Seeds</h3><p>Weekly target = random Mystery Seed with rarity weights.</p><div class="drop-table"><div><span>Common</span><span style="color:#9ca3af">60%</span></div><div><span>Uncommon</span><span style="color:#34d399">25%</span></div><div><span>Rare</span><span style="color:#60a5fa">10%</span></div><div><span>Epic</span><span style="color:#c084fc">4%</span></div><div><span>Legendary</span><span style="color:#fbbf24">1%</span></div></div></div>
+    <div class="mech"><h3 style="color:#22d3ee">Wilting (Loss Aversion)</h3><p>Miss daily target? Newest tree <strong>wilts</strong>. Revive by hitting next day's target.</p></div>
+    <div class="mech"><h3 style="color:#fb923c">Seasonal Exclusives</h3><p>4 limited trees per year. Miss it? Wait 12 months.</p><div class="season-grid"><div style="background:#064e3b"><div style="color:#34d399">Spring</div><div style="color:#6ee7b7;font-weight:600">Sakura</div></div><div style="background:#422006"><div style="color:#fbbf24">Summer</div><div style="color:#fde68a;font-weight:600">Sunflower</div></div><div style="background:#7c2d12"><div style="color:#fb923c">Autumn</div><div style="color:#fdba74;font-weight:600">Ginkgo</div></div><div style="background:#1e293b;border:1px solid #334155"><div style="color:#60a5fa">Winter</div><div style="color:#93c5fd;font-weight:600">Frost Pine</div></div></div></div>
+    <div class="mech"><h3 style="color:#34d399">Forest Leaderboard</h3><p>Team members compete on total forest size. Top performers unlock exclusive Golden variant trees.</p></div>
+  </div>
+  <div class="impact"><h3>Real Trees, Real Impact</h3><p>Every 50 virtual trees = 1 real tree via <strong>Trees for the Future</strong>. Forest App planted 2M+ real trees this way.</p></div>
+</div>
+
+<script>
+(function() {
+'use strict';
+
+// ── SPECIES DATA ──────────────────────────────────────────
+var SPECIES = [
+  { id: 'coconut_palm',   name: 'Coconut Palm',   rarity: 'common',    unlockPts: 0    },
+  { id: 'mighty_oak',     name: 'Mighty Oak',     rarity: 'common',    unlockPts: 0    },
+  { id: 'banana_plant',   name: 'Banana Plant',   rarity: 'common',    unlockPts: 50   },
+  { id: 'apple_tree',     name: 'Apple Tree',     rarity: 'common',    unlockPts: 50   },
+  { id: 'saguaro_cactus', name: 'Saguaro Cactus', rarity: 'common',    unlockPts: 100  },
+  { id: 'blue_spruce',    name: 'Blue Spruce',    rarity: 'common',    unlockPts: 100  },
+  { id: 'plumeria',       name: 'Plumeria',       rarity: 'uncommon',  unlockPts: 200  },
+  { id: 'lucky_bamboo',   name: 'Lucky Bamboo',   rarity: 'uncommon',  unlockPts: 200  },
+  { id: 'mango_tree',     name: 'Mango Tree',     rarity: 'uncommon',  unlockPts: 350  },
+  { id: 'silver_birch',   name: 'Silver Birch',   rarity: 'uncommon',  unlockPts: 350  },
+  { id: 'olive_tree',     name: 'Olive Tree',     rarity: 'uncommon',  unlockPts: 500  },
+  { id: 'jacaranda',      name: 'Jacaranda',      rarity: 'uncommon',  unlockPts: 500  },
+  { id: 'cherry_blossom', name: 'Cherry Blossom', rarity: 'rare',      unlockPts: 700  },
+  { id: 'red_maple',      name: 'Red Maple',      rarity: 'rare',      unlockPts: 700  },
+  { id: 'weeping_willow', name: 'Weeping Willow', rarity: 'rare',      unlockPts: 1000 },
+  { id: 'bougainvillea',  name: 'Bougainvillea',  rarity: 'rare',      unlockPts: 1000 },
+  { id: 'wisteria',       name: 'Wisteria',       rarity: 'rare',      unlockPts: 1000 },
+  { id: 'bonsai_pine',    name: 'Bonsai Pine',    rarity: 'epic',      unlockPts: 1500 },
+  { id: 'crystal_tree',   name: 'Crystal Tree',   rarity: 'epic',      unlockPts: 1500 },
+  { id: 'baobab',         name: 'Baobab',         rarity: 'epic',      unlockPts: 1500 },
+  { id: 'giant_redwood',  name: 'Giant Redwood',  rarity: 'legendary', unlockPts: 2000 },
+  { id: 'money_tree',     name: 'Money Tree',     rarity: 'legendary', unlockPts: 2000 },
+  { id: 'aurora_tree',    name: 'Aurora Tree',    rarity: 'mythic',    unlockPts: 3000 },
+];
+
+var RARITY_CLASS = { common:'r-com', uncommon:'r-unc', rare:'r-rar', epic:'r-epi', legendary:'r-leg', mythic:'r-myt' };
+var RARITY_LABEL = { common:'Common', uncommon:'Uncommon', rare:'Rare', epic:'Epic', legendary:'Legendary', mythic:'Mythic' };
+
+// ── STATE ─────────────────────────────────────────────────
+var state = {
+  activeId: 'coconut_palm',
+  todayPts: 0,
+  maxPts: 10,
+  treesPlanted: 3,
+  lifetimePts: 0,
+  isoCount: 3,
+  toastTimer: null,
+  weekData: [
+    { day:'Mon', pts:10, planted:true },
+    { day:'Tue', pts:8,  planted:true },
+    { day:'Wed', pts:10, planted:true },
+    { day:'Thu', pts:6,  planted:false },
+    { day:'Fri', pts:0,  planted:false },
+    { day:'Sat', pts:0,  planted:false },
+    { day:'Sun', pts:0,  planted:false, today:true },
+  ]
+};
+
+// ── SVG TREES ────────────────────────────────────────────
+// Returns SVG markup string for a given species id, stage (0-3), and size in px
+function treeSVG(id, stage, w) {
+  var h = Math.round(w * 1.4);
+  var s = w, hh = h;
+  // fallback colors per species
+  var colors = {
+    mango_tree:     ['#f97316','#ea580c'],
+    silver_birch:   ['#a8a29e','#d6d3d1'],
+    olive_tree:     ['#84cc16','#65a30d'],
+    jacaranda:      ['#a855f7','#7c3aed'],
+    weeping_willow: ['#4ade80','#22c55e'],
+    bougainvillea:  ['#f43f5e','#e11d48'],
+    wisteria:       ['#818cf8','#6366f1'],
+    bonsai_pine:    ['#166534','#15803d'],
+    baobab:         ['#a16207','#854d0e'],
+    giant_redwood:  ['#7f1d1d','#991b1b'],
+  };
+
+  function generic(stage, c1, c2) {
+    if (stage === 0) return '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><ellipse cx="40" cy="78" rx="7" ry="5" fill="#8B6914"/></svg>';
+    if (stage === 1) return '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 85 L40 55" stroke="#556B2F" stroke-width="3" stroke-linecap="round"/><circle cx="34" cy="52" r="7" fill="'+c1+'"/><circle cx="46" cy="52" r="7" fill="'+c2+'"/></svg>';
+    if (stage === 2) return '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="20" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 88 L40 50" stroke="#5C4033" stroke-width="5" stroke-linecap="round"/><circle cx="40" cy="36" r="17" fill="'+c1+'"/><circle cx="27" cy="44" r="12" fill="'+c2+'"/><circle cx="53" cy="44" r="12" fill="'+c2+'"/></svg>';
+    return '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)" class="anim-grow"><ellipse cx="40" cy="90" rx="24" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 90 L40 44" stroke="#5C4033" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="24" r="22" fill="'+c1+'"/><circle cx="18" cy="36" r="16" fill="'+c2+'"/><circle cx="62" cy="36" r="16" fill="'+c2+'"/><circle cx="28" cy="14" r="13" fill="'+c1+'"/><circle cx="52" cy="14" r="13" fill="'+c1+'"/></svg>';
+  }
+
+  var t = {
+    coconut_palm: [
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="18" ry="5" fill="#5C4033" opacity="0.4"/><ellipse cx="40" cy="78" rx="10" ry="8" fill="#8B6914"/><ellipse cx="37" cy="75" rx="4" ry="2.5" fill="#D4B45D" opacity="0.35"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="18" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 85 C40 75 40 65 41 55" stroke="#7B8E53" stroke-width="3.5" stroke-linecap="round"/><path d="M41 55 C35 48 28 50 24 56" stroke="#228B22" stroke-width="2.5" fill="none"/><path d="M41 55 C47 48 54 50 58 56" stroke="#228B22" stroke-width="2.5" fill="none"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="20" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 88 C39 75 38 60 40 40" stroke="#A0855B" stroke-width="4.5" stroke-linecap="round"/><path d="M40 40 C30 30 20 35 14 44" stroke="#228B22" stroke-width="2.5" fill="none"/><path d="M40 40 C50 30 60 35 66 44" stroke="#228B22" stroke-width="2.5" fill="none"/><path d="M40 38 C32 25 24 30 20 36" stroke="#32CD32" stroke-width="2" fill="none"/><path d="M40 38 C48 25 56 30 60 36" stroke="#32CD32" stroke-width="2" fill="none"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)" class="anim-sway"><ellipse cx="40" cy="91" rx="22" ry="5" fill="#5C4033" opacity="0.4"/><path d="M41 90 C39 78 37 60 38 35 C39 25 40 20 40 14" stroke="#A0855B" stroke-width="5.5" stroke-linecap="round"/><path d="M40 14 C25 8 8 20 2 38" stroke="#1a7a3a" stroke-width="3" fill="none"/><path d="M40 14 C55 8 72 20 78 38" stroke="#1a7a3a" stroke-width="3" fill="none"/><path d="M40 14 C28 4 14 12 6 26" stroke="#228B22" stroke-width="2.5" fill="none"/><path d="M40 14 C52 4 66 12 74 26" stroke="#228B22" stroke-width="2.5" fill="none"/><circle cx="37" cy="19" r="4.5" fill="#8B6914"/><circle cx="44" cy="21" r="4" fill="#A0793D"/></svg>'
+    ],
+    mighty_oak: [
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><ellipse cx="40" cy="78" rx="6" ry="5" fill="#8B6914"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 85 L40 55" stroke="#556B2F" stroke-width="3" stroke-linecap="round"/><ellipse cx="33" cy="55" rx="8" ry="5" fill="#2E8B57" transform="rotate(-25 33 55)"/><ellipse cx="47" cy="55" rx="8" ry="5" fill="#2E8B57" transform="rotate(25 47 55)"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="22" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 88 L40 50" stroke="#5C4033" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="35" r="18" fill="#2E8B57"/><circle cx="26" cy="42" r="14" fill="#228B22"/><circle cx="54" cy="42" r="14" fill="#228B22"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)" class="anim-grow"><ellipse cx="40" cy="90" rx="26" ry="5" fill="#2E8B57" opacity="0.25"/><path d="M40 90 L40 42" stroke="#5C4033" stroke-width="10" stroke-linecap="round"/><circle cx="40" cy="22" r="25" fill="#2E8B57"/><circle cx="15" cy="38" r="18" fill="#228B22"/><circle cx="65" cy="38" r="18" fill="#228B22"/><circle cx="25" cy="18" r="15" fill="#3CB371"/><circle cx="55" cy="18" r="15" fill="#3CB371"/><circle cx="40" cy="8" r="14" fill="#2E8B57"/></svg>'
+    ],
+    banana_plant: [
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><ellipse cx="40" cy="78" rx="8" ry="6" fill="#556B2F"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 85 L40 50" stroke="#6B8E23" stroke-width="4" stroke-linecap="round"/><ellipse cx="28" cy="48" rx="14" ry="5" fill="#228B22" transform="rotate(-15 28 48)"/><ellipse cx="52" cy="48" rx="14" ry="5" fill="#32CD32" transform="rotate(15 52 48)"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="20" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 88 L40 38" stroke="#6B8E23" stroke-width="6" stroke-linecap="round"/><ellipse cx="20" cy="38" rx="20" ry="6" fill="#228B22" transform="rotate(-25 20 38)"/><ellipse cx="60" cy="38" rx="20" ry="6" fill="#228B22" transform="rotate(25 60 38)"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)" class="anim-sway"><ellipse cx="40" cy="90" rx="22" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 90 L40 30" stroke="#6B8E23" stroke-width="7" stroke-linecap="round"/><ellipse cx="16" cy="30" rx="22" ry="7" fill="#228B22" transform="rotate(-30 16 30)"/><ellipse cx="64" cy="30" rx="22" ry="7" fill="#228B22" transform="rotate(30 64 30)"/><ellipse cx="14" cy="18" rx="20" ry="6" fill="#32CD32" transform="rotate(-45 14 18)"/><ellipse cx="66" cy="18" rx="20" ry="6" fill="#32CD32" transform="rotate(45 66 18)"/><ellipse cx="50" cy="42" rx="3" ry="6" fill="#FFD700" transform="rotate(15 50 42)"/></svg>'
+    ],
+    apple_tree: [
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><ellipse cx="40" cy="78" rx="7" ry="5" fill="#8B4513"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 85 L40 55" stroke="#5C4033" stroke-width="3" stroke-linecap="round"/><circle cx="35" cy="52" r="7" fill="#228B22"/><circle cx="45" cy="52" r="7" fill="#2E8B57"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="20" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 88 L40 48" stroke="#5C4033" stroke-width="6" stroke-linecap="round"/><circle cx="40" cy="34" r="17" fill="#228B22"/><circle cx="27" cy="42" r="12" fill="#2E8B57"/><circle cx="53" cy="42" r="12" fill="#2E8B57"/><circle cx="28" cy="36" r="4" fill="#e53e3e"/><circle cx="52" cy="38" r="3.5" fill="#e53e3e"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)" class="anim-grow"><ellipse cx="40" cy="90" rx="24" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 90 L40 44" stroke="#5C4033" stroke-width="8" stroke-linecap="round"/><circle cx="40" cy="24" r="22" fill="#228B22"/><circle cx="18" cy="36" r="16" fill="#2E8B57"/><circle cx="62" cy="36" r="16" fill="#2E8B57"/><circle cx="28" cy="14" r="13" fill="#3CB371"/><circle cx="52" cy="14" r="13" fill="#3CB371"/><circle cx="25" cy="28" r="5" fill="#e53e3e"/><circle cx="55" cy="22" r="4.5" fill="#e53e3e"/><circle cx="60" cy="38" r="4" fill="#e53e3e"/></svg>'
+    ],
+    saguaro_cactus: [
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="14" ry="4" fill="#5C4033" opacity="0.4"/><ellipse cx="40" cy="78" rx="6" ry="8" fill="#3d7a3d"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="14" ry="4" fill="#5C4033" opacity="0.4"/><rect x="36" y="55" width="8" height="32" rx="4" fill="#2d8b2d"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="18" ry="4" fill="#5C4033" opacity="0.4"/><rect x="36" y="38" width="8" height="52" rx="4" fill="#2d8b2d"/><rect x="22" y="50" width="7" height="24" rx="3.5" fill="#2d8b2d"/><path d="M25 50 C25 46 29 44 36 44" stroke="#2d8b2d" stroke-width="7" fill="none"/><rect x="51" y="54" width="7" height="20" rx="3.5" fill="#2d8b2d"/><path d="M55 54 C55 50 51 48 44 48" stroke="#2d8b2d" stroke-width="7" fill="none"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="90" rx="20" ry="4" fill="#5C4033" opacity="0.4"/><rect x="35" y="28" width="10" height="64" rx="5" fill="#2d8b2d"/><rect x="18" y="44" width="9" height="30" rx="4.5" fill="#2d8b2d"/><path d="M21 44 C21 38 27 36 35 36" stroke="#2d8b2d" stroke-width="9" fill="none"/><rect x="53" y="50" width="9" height="26" rx="4.5" fill="#2d8b2d"/><path d="M57 50 C57 44 51 42 45 42" stroke="#2d8b2d" stroke-width="9" fill="none"/></svg>'
+    ],
+    blue_spruce: [
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="14" ry="4" fill="#5C4033" opacity="0.4"/><polygon points="40,70 34,82 46,82" fill="#4a7a8a"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="14" ry="4" fill="#5C4033" opacity="0.4"/><rect x="38" y="68" width="4" height="18" rx="2" fill="#5C4033"/><polygon points="40,52 30,70 50,70" fill="#3a7a8a"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="16" ry="4" fill="#5C4033" opacity="0.4"/><rect x="38" y="62" width="4" height="28" rx="2" fill="#5C4033"/><polygon points="40,38 25,65 55,65" fill="#2a7a8a"/><polygon points="40,48 27,68 53,68" fill="#3a8a9a"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="90" rx="18" ry="4" fill="#5C4033" opacity="0.4"/><rect x="38" y="58" width="4" height="34" rx="2" fill="#5C4033"/><polygon points="40,12 22,50 58,50" fill="#1a6a7a"/><polygon points="40,26 24,58 56,58" fill="#2a7a8a"/><polygon points="40,38 22,65 58,65" fill="#3a8a9a"/><polygon points="40,50 20,72 60,72" fill="#4a8a9a"/></svg>'
+    ],
+    plumeria: [
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><ellipse cx="40" cy="78" rx="7" ry="5" fill="#6B4F12"/><circle cx="40" cy="73" r="4" fill="#FF69B4" opacity="0.6"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 85 L40 55" stroke="#556B2F" stroke-width="3" stroke-linecap="round"/><ellipse cx="33" cy="56" rx="8" ry="4" fill="#228B22" transform="rotate(-20 33 56)"/><ellipse cx="47" cy="56" rx="8" ry="4" fill="#228B22" transform="rotate(20 47 56)"/><circle cx="40" cy="50" r="5.5" fill="#FF69B4"/><circle cx="40" cy="50" r="2.5" fill="#FFD700"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="20" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 88 L40 50" stroke="#5C4033" stroke-width="5" stroke-linecap="round"/><circle cx="40" cy="38" r="14" fill="#2E8B57"/><circle cx="30" cy="44" r="10" fill="#3CB371"/><circle cx="50" cy="44" r="10" fill="#3CB371"/><circle cx="35" cy="32" r="5" fill="#FF69B4"/><circle cx="35" cy="32" r="2" fill="#FFD700"/><circle cx="48" cy="35" r="4.5" fill="#FF1493"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)" class="anim-grow"><ellipse cx="40" cy="90" rx="24" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 90 L40 45" stroke="#5C4033" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="28" r="20" fill="#2E8B57"/><circle cx="22" cy="38" r="14" fill="#3CB371"/><circle cx="58" cy="38" r="14" fill="#3CB371"/><circle cx="40" cy="16" r="10" fill="#228B22"/><circle cx="30" cy="22" r="5.5" fill="#FF69B4"/><circle cx="50" cy="24" r="5" fill="#FF1493"/><circle cx="40" cy="14" r="5" fill="#FFB6C1"/></svg>'
+    ],
+    lucky_bamboo: [
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="14" ry="4" fill="#5C4033" opacity="0.4"/><rect x="37" y="75" width="6" height="12" rx="3" fill="#4a7a3a"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="14" ry="4" fill="#5C4033" opacity="0.4"/><rect x="37" y="56" width="6" height="30" rx="3" fill="#4a7a3a"/><line x1="37" y1="66" x2="43" y2="66" stroke="#2a5a1a" stroke-width="1.5"/><line x1="37" y1="74" x2="43" y2="74" stroke="#2a5a1a" stroke-width="1.5"/><ellipse cx="28" cy="60" rx="9" ry="3" fill="#3a7a3a" transform="rotate(-20 28 60)"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="18" ry="4" fill="#5C4033" opacity="0.4"/><rect x="36" y="40" width="7" height="50" rx="3.5" fill="#4a7a3a"/><rect x="45" y="44" width="6" height="44" rx="3" fill="#5a8a4a"/><rect x="27" y="48" width="6" height="40" rx="3" fill="#3a6a3a"/><ellipse cx="22" cy="52" rx="10" ry="3" fill="#3a7a3a" transform="rotate(-25 22 52)"/><ellipse cx="58" cy="56" rx="10" ry="3" fill="#4a8a4a" transform="rotate(25 58 56)"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="90" rx="20" ry="4" fill="#5C4033" opacity="0.4"/><rect x="35" y="24" width="8" height="68" rx="4" fill="#4a7a3a"/><rect x="46" y="30" width="7" height="60" rx="3.5" fill="#5a8a4a"/><rect x="24" y="34" width="7" height="56" rx="3.5" fill="#3a6a3a"/><ellipse cx="18" cy="40" rx="12" ry="3.5" fill="#3a7a3a" transform="rotate(-30 18 40)"/><ellipse cx="62" cy="36" rx="12" ry="3.5" fill="#4a8a4a" transform="rotate(30 62 36)"/></svg>'
+    ],
+    cherry_blossom: [
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><ellipse cx="40" cy="78" rx="7" ry="5" fill="#4A3728"/><circle cx="40" cy="73" r="4" fill="#FFB7C5"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 85 L40 55" stroke="#4A3728" stroke-width="3" stroke-linecap="round"/><circle cx="35" cy="52" r="6" fill="#FFB7C5"/><circle cx="45" cy="52" r="6" fill="#FFC0CB"/><circle cx="40" cy="47" r="5" fill="#FF69B4" opacity="0.7"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="20" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 88 L40 50" stroke="#4A3728" stroke-width="5" stroke-linecap="round"/><circle cx="40" cy="38" r="16" fill="#FFB7C5"/><circle cx="28" cy="45" r="11" fill="#FFC0CB"/><circle cx="52" cy="45" r="11" fill="#FFC0CB"/><circle cx="40" cy="28" r="10" fill="#FF69B4" opacity="0.6"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)" class="anim-grow"><ellipse cx="40" cy="90" rx="24" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 90 L40 45" stroke="#4A3728" stroke-width="6" stroke-linecap="round"/><circle cx="40" cy="25" r="22" fill="#FFB7C5"/><circle cx="20" cy="38" r="16" fill="#FFC0CB"/><circle cx="60" cy="38" r="16" fill="#FFC0CB"/><circle cx="28" cy="20" r="14" fill="#FF69B4" opacity="0.55"/><circle cx="52" cy="20" r="14" fill="#FF69B4" opacity="0.55"/><circle cx="12" cy="65" r="2.5" fill="#FFB7C5" opacity="0.7" class="anim-sparkle"/><circle cx="68" cy="60" r="2" fill="#FFC0CB" opacity="0.6" class="anim-sparkle"/></svg>'
+    ],
+    red_maple: [
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><path d="M35 78 L40 70 L45 78 Z" fill="#8B0000"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 85 L40 55" stroke="#5C4033" stroke-width="3" stroke-linecap="round"/><path d="M32 55 L40 45 L48 55" fill="#DC143C"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="20" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 88 L40 50" stroke="#5C4033" stroke-width="5" stroke-linecap="round"/><circle cx="40" cy="36" r="17" fill="#DC143C"/><circle cx="28" cy="44" r="12" fill="#FF4500"/><circle cx="52" cy="44" r="12" fill="#FF4500"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="90" rx="24" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 90 L40 42" stroke="#5C4033" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="25" r="22" fill="#DC143C"/><circle cx="18" cy="38" r="16" fill="#FF4500"/><circle cx="62" cy="38" r="16" fill="#FF4500"/><circle cx="28" cy="18" r="14" fill="#FF6347"/><circle cx="52" cy="18" r="14" fill="#FF6347"/><circle cx="40" cy="10" r="12" fill="#FF8C00"/></svg>'
+    ],
+    crystal_tree: [
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#4B0082" opacity="0.3"/><polygon points="40,70 35,80 45,80" fill="#9370DB" stroke="#E6E6FA" stroke-width="0.5"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#4B0082" opacity="0.3"/><path d="M40 85 L40 55" stroke="#9370DB" stroke-width="3" stroke-linecap="round"/><polygon points="40,48 34,58 46,58" fill="#BA55D3" stroke="#E6E6FA" stroke-width="0.5"/><circle cx="40" cy="50" r="2" fill="#fff" opacity="0.7" class="anim-sparkle"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="20" ry="5" fill="#4B0082" opacity="0.3"/><path d="M40 88 L40 45" stroke="#9370DB" stroke-width="5" stroke-linecap="round"/><polygon points="40,30 28,48 52,48" fill="#BA55D3" stroke="#E6E6FA" stroke-width="0.5"/><polygon points="30,38 20,55 40,55" fill="#9370DB" stroke="#E6E6FA" stroke-width="0.5"/><polygon points="50,38 60,55 40,55" fill="#9370DB" stroke="#E6E6FA" stroke-width="0.5"/><circle cx="40" cy="28" r="3" fill="#fff" opacity="0.5" class="anim-sparkle"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="90" rx="24" ry="5" fill="#4B0082" opacity="0.35"/><path d="M40 90 L40 35" stroke="#9370DB" stroke-width="6" stroke-linecap="round"/><polygon points="40,10 28,35 52,35" fill="#BA55D3" stroke="#E6E6FA" stroke-width="0.8"/><polygon points="25,25 12,48 38,48" fill="#9370DB" stroke="#E6E6FA" stroke-width="0.8"/><polygon points="55,25 68,48 42,48" fill="#9370DB" stroke="#E6E6FA" stroke-width="0.8"/><circle cx="40" cy="15" r="3" fill="#fff" opacity="0.7" class="anim-sparkle"/><circle cx="25" cy="32" r="2.5" fill="#fff" opacity="0.5" class="anim-sparkle"/><circle cx="55" cy="32" r="2.5" fill="#fff" opacity="0.5" class="anim-sparkle"/></svg>'
+    ],
+    money_tree: [
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><circle cx="40" cy="76" r="8" fill="#DAA520"/><circle cx="40" cy="76" r="6" fill="#FFD700"/><text x="40" y="79" text-anchor="middle" fill="#8B6914" font-size="10" font-weight="bold">$</text></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 85 L40 55" stroke="#B8860B" stroke-width="3" stroke-linecap="round"/><circle cx="34" cy="52" r="6" fill="#FFD700"/><circle cx="46" cy="52" r="6" fill="#FFD700"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="20" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 88 L40 45" stroke="#B8860B" stroke-width="5" stroke-linecap="round"/><circle cx="40" cy="32" r="14" fill="#DAA520"/><circle cx="27" cy="40" r="10" fill="#FFD700"/><circle cx="53" cy="40" r="10" fill="#FFD700"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)" class="anim-grow"><ellipse cx="40" cy="90" rx="24" ry="5" fill="#5C4033" opacity="0.4"/><path d="M40 90 L40 38" stroke="#B8860B" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="22" r="20" fill="#DAA520"/><circle cx="20" cy="35" r="15" fill="#FFD700"/><circle cx="60" cy="35" r="15" fill="#FFD700"/><circle cx="30" cy="15" r="12" fill="#FADA5E"/><circle cx="50" cy="15" r="12" fill="#FADA5E"/><circle cx="12" cy="65" r="3" fill="#FFD700" class="anim-sparkle"/><circle cx="68" cy="60" r="2.5" fill="#FFD700" class="anim-sparkle"/></svg>'
+    ],
+    aurora_tree: [
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#1a1a2e" opacity="0.4"/><circle cx="40" cy="76" r="8" fill="#00ff88"/><circle cx="40" cy="76" r="4" fill="#fff" opacity="0.25"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="86" rx="16" ry="5" fill="#1a1a2e" opacity="0.4"/><path d="M40 85 L40 55" stroke="#4B0082" stroke-width="3" stroke-linecap="round"/><circle cx="35" cy="52" r="7" fill="#00ff88" opacity="0.55"/><circle cx="45" cy="52" r="7" fill="#00bfff" opacity="0.55"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)"><ellipse cx="40" cy="88" rx="20" ry="5" fill="#1a1a2e" opacity="0.4"/><path d="M40 88 L40 45" stroke="#4B0082" stroke-width="5" stroke-linecap="round"/><circle cx="40" cy="32" r="16" fill="#00ff88" opacity="0.45"/><circle cx="28" cy="40" r="12" fill="#00bfff" opacity="0.45"/><circle cx="52" cy="40" r="12" fill="#ff00ff" opacity="0.35"/></svg>',
+      '<svg width="'+s+'" height="'+hh+'" viewBox="0 0 80 96" filter="url(#shadow)" class="anim-grow"><ellipse cx="40" cy="90" rx="24" ry="5" fill="#1a1a2e" opacity="0.4"/><path d="M40 90 L40 35" stroke="#4B0082" stroke-width="6" stroke-linecap="round"/><circle cx="40" cy="20" r="28" fill="#00ff88" opacity="0.5"/><circle cx="25" cy="30" r="22" fill="#00bfff" opacity="0.4"/><circle cx="55" cy="30" r="22" fill="#ff00ff" opacity="0.3"/><circle cx="40" cy="10" r="18" fill="#00ff88" opacity="0.5"/><circle cx="30" cy="15" r="1.5" fill="#fff" opacity="0.8" class="anim-sparkle"/><circle cx="52" cy="18" r="1" fill="#fff" opacity="0.7" class="anim-sparkle"/><circle cx="40" cy="8" r="2" fill="#FFD700" class="anim-sparkle"/></svg>'
+    ]
+  };
+
+  if (t[id]) return t[id][stage] || t[id][0];
+  var c = colors[id] || ['#228B22','#2E8B57'];
+  return generic(stage, c[0], c[1]);
+}
+
+// ── HELPERS ───────────────────────────────────────────────
+function getStage() {
+  var pct = state.todayPts / state.maxPts;
+  if (pct === 0) return 0;
+  if (pct < 0.33) return 1;
+  if (pct < 0.66) return 2;
+  return 3;
+}
+function stageNames() { return ['Seed','Sprout','Small tree','Full tree']; }
+function isUnlocked(sp) { return state.lifetimePts >= sp.unlockPts; }
+function getActiveSp() { return SPECIES.find(function(s){return s.id===state.activeId;})||SPECIES[0]; }
+
+// ── TABS ──────────────────────────────────────────────────
+var TABS = [
+  { id:'daily',       label:'Daily Activity' },
+  { id:'forest',      label:'My Forest'      },
+  { id:'collection',  label:'Collection'     },
+  { id:'gallery',     label:'Species Gallery' },
+  { id:'leaderboard', label:'Leaderboard'    },
+  { id:'mechanics',   label:'How It Works'   },
+];
+var navEl = document.getElementById('navTabs');
+TABS.forEach(function(tab) {
+  var btn = document.createElement('button');
+  btn.className = 'nav-tab' + (tab.id === 'daily' ? ' active' : '');
+  btn.dataset.page = tab.id;
+  btn.textContent = tab.label;
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+    btn.classList.add('active');
+    document.getElementById('page-'+tab.id).classList.add('active');
+    if (tab.id === 'forest' && isoTreeEls.length === 0) buildIsoForest();
+    if (tab.id === 'collection') buildCollectionGrid();
+    if (tab.id === 'gallery') buildGallery();
+  });
+  navEl.appendChild(btn);
+});
+
+// ── TOAST ─────────────────────────────────────────────────
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(state.toastTimer);
+  state.toastTimer = setTimeout(function(){t.classList.remove('show');}, 3000);
+}
+
+// ── SPECIES SELECT ────────────────────────────────────────
+function buildSpeciesSelect() {
+  var sel = document.getElementById('speciesSelect');
+  sel.innerHTML = '';
+  SPECIES.forEach(function(sp) {
+    if (!isUnlocked(sp)) return;
+    var opt = document.createElement('option');
+    opt.value = sp.id;
+    opt.textContent = sp.name + ' (' + RARITY_LABEL[sp.rarity] + ')';
+    if (sp.id === state.activeId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+document.getElementById('speciesSelect').addEventListener('change', function(){
+  state.activeId = this.value;
+  updateDailyView();
+  buildCollectionGrid();
+});
+
+// ── DAILY VIEW ────────────────────────────────────────────
+function updateDailyView() {
+  var sp = getActiveSp();
+  var stage = getStage();
+  var pct = Math.round((state.todayPts / state.maxPts) * 100);
+
+  // Tree display
+  var display = document.getElementById('treeStageDisplay');
+  display.innerHTML = treeSVG(sp.id, stage, 90);
+
+  // Stage dots
+  var dots = document.querySelectorAll('.stage-dot');
+  dots.forEach(function(dot, i) {
+    dot.className = 'stage-dot';
+    if (i < stage) dot.classList.add('done');
+    else if (i === stage) dot.classList.add('active');
+  });
+  document.getElementById('stageLabel').textContent = stageNames()[stage] + ' stage';
+
+  // Progress
+  document.getElementById('progressText').textContent = 'Today: ' + state.todayPts + ' / ' + state.maxPts + ' pts';
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = Math.min(pct, 100) + '%';
+
+  // Rarity badge
+  var rarDiv = document.getElementById('activeRarity');
+  rarDiv.innerHTML = '<span class="rarity ' + RARITY_CLASS[sp.rarity] + '">' + RARITY_LABEL[sp.rarity] + '</span>';
+
+  // Log btn
+  var btn = document.getElementById('logBtn');
+  if (state.todayPts >= state.maxPts) {
+    btn.textContent = 'Daily Target Reached!';
+    btn.style.cssText = 'width:100%;padding:12px;border-radius:10px;cursor:default;background:linear-gradient(135deg,#1e3a2f,#0d2318);color:#34d399;border:1px solid #34d399;font-size:0.85rem;font-weight:800;';
+    btn.disabled = true;
+  } else {
+    btn.textContent = '+ Log Activity (+1 pt)';
+    btn.style.cssText = 'width:100%;padding:12px;border-radius:10px;cursor:pointer;background:linear-gradient(135deg,#22c55e,#34d399);color:#0a0f1a;border:none;font-size:0.85rem;font-weight:800;transition:all 0.15s;box-shadow:0 4px 16px rgba(52,211,153,0.3);';
+    btn.disabled = false;
+  }
+
+  document.getElementById('weeklyTrees').textContent = state.treesPlanted;
+  document.getElementById('weeklySpecies').textContent = SPECIES.filter(isUnlocked).length;
+  document.getElementById('weeklyPts').textContent = state.lifetimePts;
+
+  // Unlock info
+  var locked = SPECIES.filter(function(s){return !isUnlocked(s);});
+  var uEl = document.getElementById('unlockInfo');
+  if (locked.length) {
+    var next = locked[0];
+    var need = next.unlockPts - state.lifetimePts;
+    uEl.textContent = next.name + ' — ' + RARITY_LABEL[next.rarity] + ' · ' + need + ' pts away';
+  } else {
+    uEl.textContent = 'All species unlocked!';
+  }
+
+  updateWeekRow();
+  updateStats();
+}
+
+function updateWeekRow() {
+  var wr = document.getElementById('weekRow');
+  wr.innerHTML = '';
+  var sp = getActiveSp();
+  state.weekData.forEach(function(d) {
+    var isToday = !!d.today;
+    var pts = isToday ? state.todayPts : d.pts;
+    var planted = isToday ? (state.todayPts / state.maxPts >= 0.75) : d.planted;
+    var stage = planted ? 3 : (pts > 0 ? 2 : 0);
+    if (isToday) stage = getStage();
+
+    var slot = document.createElement('div');
+    slot.className = 'day-slot' + (isToday ? ' today' : '') + (planted ? ' planted' : '');
+
+    var lbl = document.createElement('div');
+    lbl.className = 'day-label';
+    lbl.textContent = d.day;
+
+    var treeDiv = document.createElement('div');
+    treeDiv.className = 'day-tree';
+    var treeId = isToday ? sp.id : 'mighty_oak';
+    treeDiv.innerHTML = treeSVG(treeId, stage, 40);
+
+    var ptsDiv = document.createElement('div');
+    ptsDiv.className = 'day-pts';
+    ptsDiv.textContent = pts > 0 ? pts + ' pts' : (isToday ? '0 pts' : '—');
+
+    slot.appendChild(lbl);
+    slot.appendChild(treeDiv);
+    slot.appendChild(ptsDiv);
+    wr.appendChild(slot);
+  });
+}
+
+function updateStats() {
+  document.getElementById('statTrees').textContent = state.treesPlanted;
+  document.getElementById('statSpecies').textContent = SPECIES.filter(isUnlocked).length;
+  document.getElementById('statPts').textContent = state.lifetimePts;
+  var yourTrees = document.getElementById('yourTrees');
+  if (yourTrees) yourTrees.textContent = state.treesPlanted;
+  var yourBar = document.getElementById('yourBar');
+  if (yourBar) yourBar.style.width = Math.min((state.treesPlanted/127)*100,100)+'%';
+}
+
+// ── LOG ACTIVITY ──────────────────────────────────────────
+document.getElementById('logBtn').addEventListener('click', function() {
+  if (state.todayPts >= state.maxPts) return;
+  state.todayPts++;
+  state.lifetimePts++;
+
+  if (state.todayPts === Math.ceil(state.maxPts * 0.75)) {
+    plantTree();
+  }
+
+  buildSpeciesSelect();
+  updateDailyView();
+  buildCollectionGrid();
+});
+
+function plantTree() {
+  state.treesPlanted++;
+  state.isoCount = Math.min(state.isoCount + 1, 40);
+  var sl = document.getElementById('isoSlider');
+  if (sl) {
+    sl.value = state.isoCount;
+    isoForestUpdate(state.isoCount);
+    updateIsoCount(state.isoCount);
+  }
+  var today = state.weekData.find(function(d){return d.today;});
+  if (today) today.planted = true;
+  showToast('Tree Planted! ' + getActiveSp().name + ' added to your forest.');
+  updateStats();
+}
+
+document.getElementById('resetBtn').addEventListener('click', function() {
+  state.todayPts = 0;
+  var today = state.weekData.find(function(d){return d.today;});
+  if (today) { today.planted = false; today.pts = 0; }
+  if (state.treesPlanted > 0) {
+    state.treesPlanted = Math.max(0, state.treesPlanted - 1);
+    state.isoCount = Math.max(3, state.isoCount - 1);
+    isoForestUpdate(state.isoCount);
+    updateIsoCount(state.isoCount);
+    var sl = document.getElementById('isoSlider');
+    if (sl) sl.value = state.isoCount;
+  }
+  updateDailyView();
+});
+
+// ── ISOMETRIC FOREST ─────────────────────────────────────
+var isoTreeEls = [];
+
+function buildIsoForest() {
+  var scene = document.getElementById('isoScene');
+  if (!scene) return;
+
+  var isoTrees = [
+    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="12" ry="4" fill="#3a6a2a" opacity="0.3"/><rect x="27" y="48" width="6" height="32" rx="3" fill="#6B4F12"/><circle cx="30" cy="32" r="20" fill="#2E8B57"/><circle cx="16" cy="38" r="14" fill="#228B22"/><circle cx="44" cy="38" r="14" fill="#228B22"/><circle cx="22" cy="22" r="12" fill="#3CB371"/><circle cx="38" cy="22" r="12" fill="#3CB371"/><circle cx="30" cy="16" r="10" fill="#2E8B57"/></svg>'; },
+    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="12" ry="4" fill="#8B6B5B" opacity="0.3"/><rect x="27" y="48" width="6" height="32" rx="3" fill="#4A3728"/><circle cx="30" cy="30" r="20" fill="#FFB7C5"/><circle cx="16" cy="38" r="14" fill="#FFC0CB"/><circle cx="44" cy="38" r="14" fill="#FFC0CB"/><circle cx="22" cy="18" r="12" fill="#FF69B4" opacity="0.6"/><circle cx="38" cy="18" r="12" fill="#FF69B4" opacity="0.6"/></svg>'; },
+    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="10" ry="3" fill="#2a5a2a" opacity="0.3"/><rect x="28" y="60" width="4" height="20" rx="2" fill="#5C4033"/><polygon points="30,8 10,55 50,55" fill="#2F6B3F"/><polygon points="30,18 14,50 46,50" fill="#3a8a4a"/><polygon points="30,28 18,48 42,48" fill="#4a9a5a"/></svg>'; },
+    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="10" ry="3" fill="#8B7355" opacity="0.3"/><path d="M31 78 C30 65 28 50 29 30 C30 20 30 15 30 10" stroke="#A0855B" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M30 10 C20 5 8 14 4 28" stroke="#1a7a3a" stroke-width="2.5" fill="none"/><path d="M30 10 C40 5 52 14 56 28" stroke="#1a7a3a" stroke-width="2.5" fill="none"/><path d="M30 10 C22 2 12 8 6 18" stroke="#228B22" stroke-width="2" fill="none"/><path d="M30 10 C38 2 48 8 54 18" stroke="#228B22" stroke-width="2" fill="none"/><circle cx="28" cy="14" r="3" fill="#8B6914"/></svg>'; },
+    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="12" ry="4" fill="#5C4033" opacity="0.3"/><rect x="27" y="48" width="6" height="32" rx="3" fill="#5C4033"/><circle cx="30" cy="30" r="20" fill="#DC143C"/><circle cx="16" cy="38" r="14" fill="#FF4500"/><circle cx="44" cy="38" r="14" fill="#FF4500"/><circle cx="22" cy="18" r="12" fill="#FF6347"/><circle cx="38" cy="18" r="12" fill="#FF6347"/><circle cx="30" cy="12" r="10" fill="#FF8C00"/></svg>'; },
+    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="10" ry="3" fill="#5C4033" opacity="0.3"/><rect x="27" y="30" width="6" height="50" rx="3" fill="#6B8E23"/><ellipse cx="12" cy="28" rx="16" ry="5" fill="#228B22" transform="rotate(-35 12 28)"/><ellipse cx="48" cy="28" rx="16" ry="5" fill="#228B22" transform="rotate(35 48 28)"/><ellipse cx="10" cy="16" rx="14" ry="4" fill="#32CD32" transform="rotate(-50 10 16)"/><ellipse cx="50" cy="16" rx="14" ry="4" fill="#32CD32" transform="rotate(50 50 16)"/></svg>'; },
+    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="10" ry="3" fill="#4B0082" opacity="0.25"/><rect x="27" y="45" width="6" height="35" rx="3" fill="#9370DB"/><polygon points="30,6 18,35 42,35" fill="#BA55D3" stroke="#E6E6FA" stroke-width="0.5"/><polygon points="18,22 8,45 28,45" fill="#9370DB" stroke="#E6E6FA" stroke-width="0.5"/><polygon points="42,22 52,45 32,45" fill="#9370DB" stroke="#E6E6FA" stroke-width="0.5"/><circle cx="30" cy="12" r="2" fill="#fff" opacity="0.6"/></svg>'; },
+    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="12" ry="4" fill="#8B6914" opacity="0.3"/><rect x="27" y="48" width="6" height="32" rx="3" fill="#B8860B"/><circle cx="30" cy="28" r="18" fill="#DAA520"/><circle cx="16" cy="36" r="13" fill="#FFD700"/><circle cx="44" cy="36" r="13" fill="#FFD700"/><circle cx="22" cy="18" r="10" fill="#FADA5E"/><circle cx="38" cy="18" r="10" fill="#FADA5E"/></svg>'; },
+  ];
+
+  var maxTrees = 40;
+  var positions = [];
+  var seed = 42;
+  function srand() { seed = (seed * 16807 + 0) % 2147483647; return (seed - 1) / 2147483646; }
+
+  for (var row = -3; row <= 3; row++) {
+    for (var col = -3; col <= 3; col++) {
+      if (Math.abs(row) + Math.abs(col) > 3) continue;
+      var svgX = 270 + (col - row) * 38 + (srand() - 0.5) * 18;
+      var svgY = 160 + (col + row) * 19 + (srand() - 0.5) * 8;
+      positions.push({ x: svgX + 30, y: svgY + 80, type: Math.floor(srand() * isoTrees.length), size: 34 + srand() * 16 });
+    }
+  }
+  positions.sort(function(a,b){return a.y - b.y;});
+  positions = positions.slice(0, maxTrees);
+
+  positions.forEach(function(p) {
+    var div = document.createElement('div');
+    div.className = 'iso-tree hidden';
+    div.style.left = (p.x - p.size / 2) + 'px';
+    div.style.top = (p.y - p.size * 1.4) + 'px';
+    div.style.zIndex = Math.floor(p.y);
+    div.innerHTML = isoTrees[p.type](p.size);
+    scene.appendChild(div);
+    isoTreeEls.push(div);
+  });
+
+  document.getElementById('isoSlider').addEventListener('input', function() {
+    var v = parseInt(this.value);
+    isoForestUpdate(v);
+    updateIsoCount(v);
+  });
+
+  isoForestUpdate(state.isoCount);
+  updateIsoCount(state.isoCount);
+  document.getElementById('isoSlider').value = state.isoCount;
+}
+
+function isoForestUpdate(count) {
+  isoTreeEls.forEach(function(el, i) {
+    if (i < count) {
+      el.className = 'iso-tree visible';
+      el.style.transitionDelay = (i % 6) * 40 + 'ms';
+    } else {
+      el.className = 'iso-tree hidden';
+      el.style.transitionDelay = '0ms';
+    }
+  });
+}
+
+function updateIsoCount(count) {
+  var el = document.getElementById('isoCount');
+  el.textContent = count;
+  var sm = document.createElement('small');
+  sm.textContent = count === 1 ? 'tree' : 'trees';
+  el.appendChild(sm);
+}
+
+// ── COLLECTION GRID ───────────────────────────────────────
+function buildCollectionGrid() {
+  var grid = document.getElementById('collectionGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  SPECIES.forEach(function(sp) {
+    var unlocked = isUnlocked(sp);
+    var selected = sp.id === state.activeId;
+
+    var card = document.createElement('div');
+    card.className = 'col-card' + (unlocked ? '' : ' locked') + (selected ? ' selected' : '');
+
+    var treeDiv = document.createElement('div');
+    treeDiv.className = 'col-tree';
+    treeDiv.innerHTML = treeSVG(sp.id, unlocked ? 3 : 0, 44);
+    card.appendChild(treeDiv);
+
+    var nameDiv = document.createElement('div');
+    nameDiv.className = 'col-name';
+    nameDiv.textContent = sp.name;
+    card.appendChild(nameDiv);
+
+    var badge = document.createElement('span');
+    badge.className = 'rarity ' + RARITY_CLASS[sp.rarity];
+    badge.textContent = RARITY_LABEL[sp.rarity];
+    card.appendChild(badge);
+
+    if (!unlocked) {
+      var ptsDiv = document.createElement('div');
+      ptsDiv.className = 'col-pts';
+      ptsDiv.textContent = sp.unlockPts + ' pts to unlock';
+      card.appendChild(ptsDiv);
+    }
+
+    if (selected) {
+      var ring = document.createElement('div');
+      ring.style.cssText = 'position:absolute;top:-3px;left:-3px;right:-3px;bottom:-3px;border-radius:14px;border:2px solid #34d399;pointer-events:none;';
+      card.appendChild(ring);
+    }
+
+    if (unlocked) {
+      (function(id){
+        card.addEventListener('click', function() {
+          state.activeId = id;
+          buildSpeciesSelect();
+          updateDailyView();
+          buildCollectionGrid();
+          // Switch to daily tab
+          document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
+          document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+          document.querySelector('[data-page="daily"]').classList.add('active');
+          document.getElementById('page-daily').classList.add('active');
+          showToast(id.replace(/_/g,' ').replace(/\b\w/g,function(l){return l.toUpperCase();}) + ' selected as active species!');
+        });
+      })(sp.id);
+    }
+
+    grid.appendChild(card);
+  });
+}
+
+// ── LEADERBOARD ───────────────────────────────────────────
+var lbData = [
+  { rank:1, initials:'JT', name:'James Tan',    detail:'12-week streak · 8 rare trees · Aurora owner', trees:127, pct:100, cls:'gold',   rankColor:'#fbbf24', avatarBg:'#78350f', avatarColor:'#fbbf24', barColor:'#fbbf24' },
+  { rank:2, initials:'SL', name:'Sarah Lim',    detail:'8-week streak · 5 rare trees',                  trees:108, pct:85,  cls:'silver', rankColor:'#94a3b8', avatarBg:'#374151', avatarColor:'#94a3b8', barColor:'#94a3b8' },
+  { rank:3, initials:'MK', name:'Michael Koh',  detail:'6-week streak · 3 rare trees',                  trees:91,  pct:72,  cls:'bronze', rankColor:'#d97706', avatarBg:'#451a03', avatarColor:'#d97706', barColor:'#34d399' },
+  { rank:4, initials:'AW', name:'Amanda Wong',  detail:'4-week streak',                                  trees:74,  pct:58,  cls:'',       rankColor:'#64748b', avatarBg:'#334155', avatarColor:'#e2e8f0', barColor:'#34d399' },
+  { rank:5, initials:'DL', name:'David Lee',    detail:'3-week streak',                                  trees:55,  pct:43,  cls:'',       rankColor:'#64748b', avatarBg:'#334155', avatarColor:'#e2e8f0', barColor:'#34d399' },
+];
+var lbWrap = document.getElementById('lbWrap');
+lbData.forEach(function(p) {
+  var row = document.createElement('div');
+  row.className = 'lb-row' + (p.cls ? ' ' + p.cls : '');
+
+  var rank = document.createElement('div');
+  rank.className = 'lb-rank';
+  rank.style.color = p.rankColor;
+  rank.textContent = p.rank;
+  row.appendChild(rank);
+
+  var avatar = document.createElement('div');
+  avatar.className = 'lb-avatar';
+  avatar.style.background = p.avatarBg;
+  avatar.style.color = p.avatarColor;
+  avatar.textContent = p.initials;
+  row.appendChild(avatar);
+
+  var info = document.createElement('div');
+  info.className = 'lb-info';
+  var nm = document.createElement('div');
+  nm.className = 'lb-name';
+  nm.textContent = p.name;
+  var det = document.createElement('div');
+  det.className = 'lb-detail';
+  det.textContent = p.detail;
+  var bar = document.createElement('div');
+  bar.className = 'lb-bar';
+  var fill = document.createElement('div');
+  fill.className = 'lb-bar-fill';
+  fill.style.width = p.pct + '%';
+  fill.style.background = p.barColor;
+  bar.appendChild(fill);
+  info.appendChild(nm);
+  info.appendChild(det);
+  info.appendChild(bar);
+  row.appendChild(info);
+
+  var trees = document.createElement('div');
+  trees.className = 'lb-trees';
+  var tNum = document.createElement('div');
+  tNum.className = 'num';
+  tNum.textContent = p.trees;
+  var tLbl = document.createElement('div');
+  tLbl.className = 'lbl';
+  tLbl.textContent = 'trees';
+  trees.appendChild(tNum);
+  trees.appendChild(tLbl);
+  row.appendChild(trees);
+
+  var vBtn = document.createElement('button');
+  vBtn.className = 'visit-btn';
+  vBtn.textContent = 'Visit Forest';
+  vBtn.addEventListener('click', function() {
+    document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
+    document.querySelectorAll('.page').forEach(function(pp){pp.classList.remove('active');});
+    document.querySelector('[data-page="forest"]').classList.add('active');
+    document.getElementById('page-forest').classList.add('active');
+    if (isoTreeEls.length === 0) buildIsoForest();
+    setTimeout(function(){
+      var iso = document.querySelector('.iso-wrap');
+      if (iso) iso.scrollIntoView({behavior:'smooth',block:'center'});
+    }, 100);
+  });
+  row.appendChild(vBtn);
+
+  lbWrap.appendChild(row);
+});
+
+// You row
+var sep = document.createElement('div');
+sep.style.cssText = 'border-top:1px solid #334155;margin:12px 0;';
+lbWrap.appendChild(sep);
+
+var youRow = document.createElement('div');
+youRow.className = 'lb-row';
+youRow.style.cssText = 'border-color:#334155;background:linear-gradient(90deg,#0d2318,#1e293b);';
+youRow.innerHTML = '<div class="lb-rank" style="color:#34d399">—</div>';
+
+var youAvatar = document.createElement('div');
+youAvatar.className = 'lb-avatar';
+youAvatar.style.cssText = 'background:#0d2318;color:#34d399;border:1px solid #34d399;';
+youAvatar.textContent = 'YOU';
+youRow.appendChild(youAvatar);
+
+var youInfo = document.createElement('div');
+youInfo.className = 'lb-info';
+var youName = document.createElement('div');
+youName.className = 'lb-name';
+youName.style.color = '#34d399';
+youName.textContent = 'You';
+var youDetail = document.createElement('div');
+youDetail.className = 'lb-detail';
+youDetail.id = 'yourDetail';
+youDetail.textContent = '0-week streak · just getting started';
+var youBarWrap = document.createElement('div');
+youBarWrap.className = 'lb-bar';
+var youBarFill = document.createElement('div');
+youBarFill.className = 'lb-bar-fill';
+youBarFill.id = 'yourBar';
+youBarFill.style.width = '2%';
+youBarWrap.appendChild(youBarFill);
+youInfo.appendChild(youName);
+youInfo.appendChild(youDetail);
+youInfo.appendChild(youBarWrap);
+youRow.appendChild(youInfo);
+
+var youTrees = document.createElement('div');
+youTrees.className = 'lb-trees';
+var youNum = document.createElement('div');
+youNum.className = 'num';
+youNum.id = 'yourTrees';
+youNum.style.color = '#34d399';
+youNum.textContent = '0';
+var youLbl = document.createElement('div');
+youLbl.className = 'lbl';
+youLbl.textContent = 'trees';
+youTrees.appendChild(youNum);
+youTrees.appendChild(youLbl);
+youRow.appendChild(youTrees);
+
+var youVisit = document.createElement('button');
+youVisit.className = 'visit-btn';
+youVisit.style.cssText = 'padding:6px 12px;background:#0f172a;border:1px solid #34d399;border-radius:8px;color:#34d399;font-size:0.68rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;';
+youVisit.textContent = 'Visit Forest';
+youVisit.addEventListener('click', function() {
+  document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.page').forEach(function(pp){pp.classList.remove('active');});
+  document.querySelector('[data-page="forest"]').classList.add('active');
+  document.getElementById('page-forest').classList.add('active');
+  if (isoTreeEls.length === 0) buildIsoForest();
+});
+youRow.appendChild(youVisit);
+lbWrap.appendChild(youRow);
+
+// ── INIT ──────────────────────────────────────────────────
+buildSpeciesSelect();
+// ── GALLERY ──────────────────────────────────────────────
+var galleryBuilt = false;
+function buildGallery() {
+  if (galleryBuilt) return;
+  galleryBuilt = true;
+  var wrap = document.getElementById('galleryGrid');
+  wrap.className = 'gallery-grid';
+  var rarityColors = { common:'#9ca3af', uncommon:'#34d399', rare:'#60a5fa', epic:'#c084fc', legendary:'#fbbf24', mythic:'#fb7185' };
+  var rarityBg = { common:'#374151', uncommon:'#064e3b', rare:'#1e3a5f', epic:'#3b0764', legendary:'#78350f', mythic:'#4c0519' };
+  var stageLabels = ['Seed', 'Sprout', 'Small', 'Full'];
+  var descriptions = {};
+  SPECIES.forEach(function(sp) {
+    descriptions[sp.id] = {
+      coconut_palm: 'Classic tropical palm with swaying fronds and coconuts.',
+      mighty_oak: 'Massive, sturdy tree symbolizing strength and endurance.',
+      banana_plant: 'Giant leaves with golden banana bunch at full growth.',
+      apple_tree: 'Classic fruit tree loaded with red apples.',
+      saguaro_cactus: 'Desert survivor with iconic arms and flower crown.',
+      blue_spruce: 'Stunning blue-silver needles in a perfect cone.',
+      plumeria: 'Fragrant tropical beauty with pink and gold flowers.',
+      lucky_bamboo: 'Fast-growing bamboo grove symbolizing rapid progress.',
+      mango_tree: 'Lush canopy with colorful mangoes at full growth.',
+      silver_birch: 'Elegant white bark with light, airy canopy.',
+      olive_tree: 'Mediterranean silver-green foliage.',
+      jacaranda: 'Purple flowering canopy.',
+      cherry_blossom: 'Iconic sakura with cascading pink petals.',
+      red_maple: 'Blazing autumn colors from crimson to orange.',
+      weeping_willow: 'Graceful cascading branches sweeping toward the ground.',
+      bougainvillea: 'Explosion of vivid magenta blooms.',
+      wisteria: 'Cascading purple flower curtains.',
+      bonsai_pine: 'Living art form in a ceramic pot.',
+      crystal_tree: 'Amethyst crystalline formations with sparkling light.',
+      baobab: 'The upside-down tree with iconic bottle trunk.',
+      giant_redwood: 'Tallest tree on Earth. A true achievement.',
+      money_tree: 'Golden tree dropping coins. The ultimate reward.',
+      aurora_tree: 'Ethereal aurora borealis glow. Ultimate prestige.',
+    }[sp.id] || '';
+  });
+
+  SPECIES.forEach(function(sp) {
+    var card = document.createElement('div');
+    card.className = 'gallery-card';
+
+    var head = document.createElement('div');
+    head.className = 'gallery-head';
+    var nameEl = document.createElement('span');
+    nameEl.className = 'gallery-name';
+    nameEl.textContent = sp.name;
+    var badge = document.createElement('span');
+    badge.style.cssText = 'display:inline-block;padding:2px 10px;border-radius:99px;font-size:0.65rem;font-weight:700;background:' + (rarityBg[sp.rarity]||'#374151') + ';color:' + (rarityColors[sp.rarity]||'#9ca3af');
+    badge.textContent = sp.rarity.charAt(0).toUpperCase() + sp.rarity.slice(1);
+    head.appendChild(nameEl);
+    head.appendChild(badge);
+    card.appendChild(head);
+
+    var costEl = document.createElement('div');
+    costEl.className = 'gallery-cost';
+    costEl.innerHTML = sp.unlockPts === 0 ? '<b>FREE</b> — Starter' : '<b>' + sp.unlockPts + ' pts</b> to unlock';
+    card.appendChild(costEl);
+
+    var stagesDiv = document.createElement('div');
+    stagesDiv.className = 'gallery-stages';
+    for (var i = 0; i < 4; i++) {
+      var stageEl = document.createElement('div');
+      stageEl.className = 'gallery-stage';
+      var tpl = document.createElement('template');
+      tpl.innerHTML = treeSVG(sp.id, i, 56).trim();
+      stageEl.appendChild(tpl.content.firstChild);
+      var lbl = document.createElement('span');
+      lbl.className = 'gallery-stage-lbl';
+      lbl.textContent = stageLabels[i];
+      stageEl.appendChild(lbl);
+      stagesDiv.appendChild(stageEl);
+    }
+    card.appendChild(stagesDiv);
+
+    var desc = document.createElement('div');
+    desc.className = 'gallery-desc';
+    desc.textContent = descriptions[sp.id] || '';
+    card.appendChild(desc);
+
+    wrap.appendChild(card);
+  });
+}
+
+updateDailyView();
+buildCollectionGrid();
+setTimeout(function(){ if (isoTreeEls.length === 0) buildIsoForest(); }, 200);
+
+})();
+</script>
+</body>
+</html>
