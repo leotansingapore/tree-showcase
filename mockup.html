@@ -249,6 +249,8 @@ body {
       <!-- Static 3D grass tile base -->
       <div style="position:relative;width:100%;max-width:650px;">
         <img src="forest-base.png" alt="Forest base" style="width:100%;height:auto;display:block;" />
+        <!-- Subtle grid overlay on the grass tile -->
+        <svg id="isoGridOverlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;" viewBox="0 0 650 500" preserveAspectRatio="none"></svg>
         <!-- Tree overlay container - trees positioned on the tile surface -->
         <div id="isoTreeOverlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;"></div>
       </div>
@@ -445,7 +447,7 @@ body {
     </div>
     <div class="iso-controls">
       <div class="iso-label">Trees planted:</div>
-      <input type="range" class="iso-slider" id="isoSlider" min="0" max="40" value="3" aria-label="Number of trees planted">
+      <input type="range" class="iso-slider" id="isoSlider" min="0" max="28" value="3" aria-label="Number of trees planted">
       <div class="iso-count" id="isoCount">0<small>trees</small></div>
     </div>
   </div>
@@ -863,7 +865,7 @@ document.getElementById('logBtn').addEventListener('click', function() {
 
 function plantTree() {
   state.treesPlanted++;
-  state.isoCount = Math.min(state.isoCount + 1, 40);
+  state.isoCount = Math.min(state.isoCount + 1, 28);
   var sl = document.getElementById('isoSlider');
   if (sl) {
     sl.value = state.isoCount;
@@ -917,46 +919,76 @@ function buildIsoForest() {
     function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="12" ry="4" fill="#8B6914" opacity="0.3"/><rect x="27" y="48" width="6" height="32" rx="3" fill="#B8860B"/><circle cx="30" cy="28" r="18" fill="#DAA520"/><circle cx="16" cy="36" r="13" fill="#FFD700"/><circle cx="44" cy="36" r="13" fill="#FFD700"/><circle cx="22" cy="18" r="10" fill="#FADA5E"/><circle cx="38" cy="18" r="10" fill="#FADA5E"/><!-- pink flower tops --><circle cx="22" cy="14" r="2.8" fill="#FF69B4" opacity="0.85"/><circle cx="22" cy="14" r="1.1" fill="#fff"/><circle cx="38" cy="12" r="2.5" fill="#FF1493" opacity="0.8"/><circle cx="38" cy="12" r="1" fill="#fff"/><circle cx="30" cy="10" r="2.2" fill="#FFB6C1" opacity="0.9"/><circle cx="30" cy="10" r="0.9" fill="#FFD700"/></svg>'; },
   ];
 
-  var maxTrees = 40;
+  // 4 rows x 7 cols = 28 day slots on an isometric grid
+  var ROWS = 4, COLS = 7, maxTrees = ROWS * COLS;
   var positions = [];
   var seed = 42;
   function srand() { seed = (seed * 16807 + 0) % 2147483647; return (seed - 1) / 2147483646; }
 
-  // Place trees using percentage coordinates (0-100) so they scale with image
-  // The diamond grass surface occupies roughly:
-  //   top vertex ~20%, bottom ~78%, left ~12%, right ~88% of the image
-  //   center at 50%, 48%
-  for (var row = -3; row <= 3; row++) {
-    for (var col = -3; col <= 3; col++) {
-      if (Math.abs(row) + Math.abs(col) > 3) continue;
-      // Isometric projection to percentage coords
-      var px = 50 + (col - row) * 6.5 + (srand() - 0.5) * 3;
-      var py = 48 + (col + row) * 3.5 + (srand() - 0.5) * 1.5;
-      // Vary tree growth stages: mix of small (stage 2) and full (stage 3)
+  // Isometric grid mapping onto the diamond grass tile
+  // The diamond surface center is at ~50%, ~42% of the image
+  // Each cell is offset in isometric space: right = (+dx, +dy), down = (-dx, +dy)
+  var centerX = 50, centerY = 42;
+  var cellDx = 5.2;  // half-cell width in % (x shift per col)
+  var cellDy = 2.8;  // half-cell height in % (y shift per row)
+
+  // Build subtle grid lines SVG
+  var gridSvg = document.getElementById('isoGridOverlay');
+  var gridLines = '';
+
+  for (var row = 0; row < ROWS; row++) {
+    for (var col = 0; col < COLS; col++) {
+      // Isometric projection: col goes right-down, row goes left-down
+      var isoCol = col - (COLS - 1) / 2;
+      var isoRow = row - (ROWS - 1) / 2;
+      var px = centerX + (isoCol - isoRow) * cellDx;
+      var py = centerY + (isoCol + isoRow) * cellDy;
+
+      // Assign varied species and stages
+      var speciesIdx = Math.floor(srand() * 5);
       var stageRand = srand();
-      var treeStage = stageRand < 0.15 ? 0 : stageRand < 0.3 ? 1 : stageRand < 0.55 ? 2 : 3;
-      positions.push({ px: px, py: py, type: Math.floor(srand() * isoTrees.length), sizePct: 5.5 + srand() * 3, stage: treeStage });
+      var treeStage = stageRand < 0.1 ? 0 : stageRand < 0.25 ? 1 : stageRand < 0.5 ? 2 : 3;
+
+      positions.push({ px: px, py: py, speciesIdx: speciesIdx, stage: treeStage, row: row, col: col });
+
+      // Add subtle diamond grid cell to SVG (isometric diamond per cell)
+      var svgX = px * 6.5, svgY = py * 5.0;
+      var dxSvg = cellDx * 6.5 * 0.48, dySvg = cellDy * 5.0 * 0.48;
+      gridLines += '<polygon points="'
+        + svgX+',' + (svgY - dySvg) + ' '
+        + (svgX + dxSvg) + ',' + svgY + ' '
+        + svgX + ',' + (svgY + dySvg) + ' '
+        + (svgX - dxSvg) + ',' + svgY
+        + '" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/>';
+      // Subtle alternating shade for checkerboard feel
+      if ((row + col) % 2 === 0) {
+        gridLines += '<polygon points="'
+          + svgX+',' + (svgY - dySvg) + ' '
+          + (svgX + dxSvg) + ',' + svgY + ' '
+          + svgX + ',' + (svgY + dySvg) + ' '
+          + (svgX - dxSvg) + ',' + svgY
+          + '" fill="rgba(0,0,0,0.03)" stroke="none"/>';
+      }
     }
   }
+  gridSvg.innerHTML = gridLines;
+
+  // Sort back-to-front for proper overlap (painter's algorithm)
   positions.sort(function(a,b){return a.py - b.py;});
-  positions = positions.slice(0, maxTrees);
 
-  // Place 3D tree images in the overlay container using percentage positioning
   var overlay = document.getElementById('isoTreeOverlay');
-
-  // Map tree types to species IDs for 3D images
-  var treeSpeciesIds = ['mighty_oak', 'cherry_blossom', 'coconut_palm', 'banana_plant', 'apple_tree',
-    'mighty_oak', 'cherry_blossom', 'coconut_palm'];
+  var treeSpeciesIds = ['mighty_oak', 'cherry_blossom', 'coconut_palm', 'banana_plant', 'apple_tree'];
 
   positions.forEach(function(p) {
     var div = document.createElement('div');
-    var speciesId = treeSpeciesIds[p.type % treeSpeciesIds.length];
-    var stageKey = ['seed', 'sprout', 'small', 'full'][p.stage || 3];
-    div.style.cssText = 'position:absolute;left:'+p.px+'%;top:'+p.py+'%;transform:translate(-50%,-85%) scale(1);transition:opacity 0.4s cubic-bezier(0.34,1.56,0.64,1),transform 0.4s cubic-bezier(0.34,1.56,0.64,1);opacity:0;z-index:'+Math.floor(p.py*10)+';pointer-events:auto;cursor:pointer;';
+    var speciesId = treeSpeciesIds[p.speciesIdx % treeSpeciesIds.length];
+    var stageKey = ['seed', 'sprout', 'small', 'full'][p.stage];
+    div.style.cssText = 'position:absolute;left:'+p.px+'%;top:'+p.py+'%;transform:translate(-50%,-80%);transition:opacity 0.4s cubic-bezier(0.34,1.56,0.64,1),transform 0.4s cubic-bezier(0.34,1.56,0.64,1);opacity:0;z-index:'+Math.floor(p.py*10)+';pointer-events:auto;cursor:pointer;';
     var img = document.createElement('img');
     img.src = 'trees/stages/' + speciesId + '_' + stageKey + '.png';
-    img.alt = speciesId;
-    var imgSize = Math.round(40 + p.sizePct * 6);
+    img.alt = speciesId + ' (Day ' + (p.row * COLS + p.col + 1) + ')';
+    img.title = 'Day ' + (p.row * COLS + p.col + 1) + ' — ' + speciesId.replace(/_/g, ' ');
+    var imgSize = p.stage === 0 ? 35 : p.stage === 1 ? 45 : p.stage === 2 ? 55 : 65;
     img.style.cssText = 'width:'+imgSize+'px;height:auto;display:block;filter:drop-shadow(0 3px 3px rgba(0,0,0,0.25));';
     img.draggable = false;
     div.appendChild(img);
