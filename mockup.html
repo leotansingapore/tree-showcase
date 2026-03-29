@@ -956,7 +956,8 @@ function buildIsoForest() {
     var img = document.createElement('img');
     img.src = 'trees/stages/' + speciesId + '_' + stageKey + '.png';
     img.alt = speciesId;
-    img.style.cssText = 'width:'+Math.round(p.sizePct * 1.2)+'%;max-width:80px;height:auto;display:block;filter:drop-shadow(0 3px 3px rgba(0,0,0,0.25));';
+    var imgSize = Math.round(40 + p.sizePct * 6);
+    img.style.cssText = 'width:'+imgSize+'px;height:auto;display:block;filter:drop-shadow(0 3px 3px rgba(0,0,0,0.25));';
     img.draggable = false;
     div.appendChild(img);
     overlay.appendChild(div);
