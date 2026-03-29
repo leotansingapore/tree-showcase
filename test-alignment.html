@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head><title>Alignment Test</title></head>
+<body style="margin:0;background:#2a5a4a;display:flex;justify-content:center;align-items:center;min-height:100vh;">
+<div id="wrap" style="position:relative;width:95vmin;max-width:800px;">
+  <img src="forest-base.png" style="width:100%;display:block;" />
+  <div id="overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;"></div>
+</div>
+<script>
+var wrap = document.getElementById('overlay');
+var topX=49,topY=25, rightX=82,rightY=41.5, leftX=16,leftY=41.5;
+var ROWS=5,COLS=6;
+var usx=(rightX-topX)/COLS, usy=(rightY-topY)/COLS;
+var vsx=(leftX-topX)/ROWS, vsy=(leftY-topY)/ROWS;
+var species=['mighty_oak','cherry_blossom','coconut_palm','banana_plant','apple_tree'];
+var stages=['seed','sprout','small','full'];
+var seed=42;
+function srand(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}
+
+for(var r=0;r<ROWS;r++){
+  for(var c=0;c<COLS;c++){
+    var px=topX+(c+0.5)*usx+(r+0.5)*vsx;
+    var py=topY+(c+0.5)*usy+(r+0.5)*vsy;
+    var si=Math.floor(srand()*5);
+    var sr=srand();
+    var st=sr<0.1?0:sr<0.25?1:sr<0.5?2:3;
+    var sz=st===0?38:st===1?50:st===2?62:75;
+
+    // Tree image anchored at bottom-center
+    var img=document.createElement('img');
+    img.src='trees/stages/'+species[si]+'_'+stages[st]+'.png';
+    img.style.cssText='position:absolute;left:'+px+'%;top:'+py+'%;width:'+sz+'px;height:auto;transform:translate(-50%,-100%);z-index:'+Math.floor(py*10)+';filter:drop-shadow(0 3px 3px rgba(0,0,0,0.25));';
+    wrap.appendChild(img);
+
+    // Red dot at grid center (where tree base should be)
+    var dot=document.createElement('div');
+    dot.style.cssText='position:absolute;left:'+px+'%;top:'+py+'%;width:8px;height:8px;background:red;border:2px solid white;border-radius:50%;transform:translate(-50%,-50%);z-index:9999;';
+    wrap.appendChild(dot);
+  }
+}
+</script>
+</body>
+</html>
