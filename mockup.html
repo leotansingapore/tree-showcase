@@ -81,13 +81,22 @@ body {
 .stat-box .n { font-size: 1.5rem; font-weight: 800; line-height: 1; }
 .stat-box .l { font-size: 0.65rem; color: #64748b; margin-top: 3px; }
 .iso-wrap { border-radius: 20px; overflow: hidden; border: 1px solid #334155; background: #0a1628; margin-bottom: 0; }
-.iso-container { width: 100%; display: flex; justify-content: center; align-items: flex-end; padding: 60px 20px 0; min-height: 420px; overflow: hidden; background: linear-gradient(180deg, #c8eaf5 0%, #daf2e4 50%, #cceacc 100%); position: relative; }
-.iso-scene { position: relative; width: 600px; height: 400px; flex-shrink: 0; }
-.iso-tile { position: absolute; left: 50%; bottom: 0; width: 540px; height: 320px; transform: translateX(-50%); }
-.iso-tree { position: absolute; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); transform-origin: bottom center; cursor: pointer; }
+.iso-container {
+  width: 100%; display: flex; justify-content: center; align-items: flex-end;
+  padding: 80px 20px 0; min-height: 520px; overflow: hidden;
+  background: linear-gradient(180deg, #3a6b5a 0%, #4a7b6a 40%, #3d6e5c 100%);
+  position: relative;
+}
+.iso-scene { position: relative; width: 620px; height: 450px; flex-shrink: 0; }
+.iso-tile { position: absolute; left: 50%; bottom: 0; width: 560px; height: 360px; transform: translateX(-50%); }
+.iso-tree {
+  position: absolute; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  transform-origin: bottom center; cursor: pointer;
+  filter: drop-shadow(0 3px 2px rgba(0,0,0,0.15));
+}
 .iso-tree.hidden { opacity: 0; transform: scale(0) translateY(30px); }
 .iso-tree.visible { opacity: 1; transform: scale(1) translateY(0); }
-.iso-tree:hover { transform: scale(1.1) translateY(-4px); }
+.iso-tree:hover { transform: scale(1.1) translateY(-4px); filter: drop-shadow(0 6px 6px rgba(0,0,0,0.25)); }
 .iso-controls { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; background: #1e293b; border-top: 1px solid #334155; gap: 12px; }
 .iso-slider { flex: 1; -webkit-appearance: none; height: 6px; border-radius: 3px; background: #334155; outline: none; }
 .iso-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #34d399, #22c55e); cursor: pointer; border: 3px solid #0f172a; box-shadow: 0 2px 8px rgba(52,211,153,0.4); }
@@ -235,26 +244,89 @@ body {
   <div class="iso-wrap">
     <div class="iso-container">
       <div class="iso-scene" id="isoScene">
-        <svg class="iso-tile" viewBox="0 0 540 320" fill="none">
+        <svg class="iso-tile" viewBox="0 0 560 360" fill="none">
           <defs>
-            <linearGradient id="dirtL" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9B7B4A"/><stop offset="100%" stop-color="#6B4F2D"/></linearGradient>
-            <linearGradient id="dirtR" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7B5B3A"/><stop offset="100%" stop-color="#5A4020"/></linearGradient>
+            <linearGradient id="dirtL" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9B7B4A"/><stop offset="40%" stop-color="#8B6B3A"/><stop offset="100%" stop-color="#5A4020"/></linearGradient>
+            <linearGradient id="dirtR" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7B5B3A"/><stop offset="40%" stop-color="#6B4B2A"/><stop offset="100%" stop-color="#4A3518"/></linearGradient>
+            <linearGradient id="grassTop" x1="0.3" y1="0" x2="0.7" y2="1"><stop offset="0%" stop-color="#8dd470"/><stop offset="30%" stop-color="#7bc462"/><stop offset="70%" stop-color="#6ab855"/><stop offset="100%" stop-color="#7bc462"/></linearGradient>
           </defs>
-          <path d="M0 160 L270 280 L270 320 L0 200 Z" fill="url(#dirtL)"/>
-          <g fill="#5a4020" opacity="0.4"><ellipse cx="40" cy="185" rx="5" ry="3"/><ellipse cx="80" cy="200" rx="4" ry="2.5"/><ellipse cx="120" cy="215" rx="5" ry="3"/><ellipse cx="160" cy="230" rx="4" ry="2.5"/><ellipse cx="200" cy="245" rx="5" ry="3"/><ellipse cx="240" cy="260" rx="4" ry="2.5"/></g>
-          <path d="M540 160 L270 280 L270 320 L540 200 Z" fill="url(#dirtR)"/>
-          <g fill="#4a3520" opacity="0.4"><ellipse cx="500" cy="185" rx="5" ry="3"/><ellipse cx="460" cy="200" rx="4" ry="2.5"/><ellipse cx="420" cy="215" rx="5" ry="3"/><ellipse cx="380" cy="230" rx="4" ry="2.5"/><ellipse cx="340" cy="245" rx="5" ry="3"/><ellipse cx="300" cy="260" rx="4" ry="2.5"/></g>
-          <path d="M270 40 L540 160 L270 280 L0 160 Z" fill="#7bc462"/>
-          <path d="M270 40 L540 160 L270 280 L0 160 Z" fill="#8dd470" opacity="0.3"/>
-          <g stroke="#6ab855" stroke-width="0.8" opacity="0.2">
-            <line x1="54" y1="107" x2="324" y2="227"/><line x1="108" y1="80" x2="378" y2="200"/>
-            <line x1="162" y1="53" x2="432" y2="173"/><line x1="216" y1="67" x2="486" y2="187"/>
-            <line x1="324" y1="107" x2="54" y2="227"/><line x1="378" y1="80" x2="108" y2="200"/>
-            <line x1="432" y1="53" x2="162" y2="173"/><line x1="486" y1="67" x2="216" y2="187"/>
+          <!-- Dirt left side - thicker -->
+          <path d="M0 160 L280 290 L280 340 L0 210 Z" fill="url(#dirtL)"/>
+          <!-- Dirt rocks/pebbles left -->
+          <g fill="#4a3518" opacity="0.5">
+            <ellipse cx="30" cy="195" rx="8" ry="5"/><ellipse cx="60" cy="208" rx="6" ry="4"/>
+            <ellipse cx="95" cy="222" rx="9" ry="5"/><ellipse cx="130" cy="238" rx="7" ry="4"/>
+            <ellipse cx="165" cy="252" rx="8" ry="5"/><ellipse cx="200" cy="266" rx="6" ry="4"/>
+            <ellipse cx="235" cy="280" rx="8" ry="5"/><ellipse cx="260" cy="290" rx="6" ry="4"/>
           </g>
+          <g fill="#3a2a12" opacity="0.3">
+            <ellipse cx="45" cy="210" rx="5" ry="3"/><ellipse cx="110" cy="235" rx="5" ry="3"/>
+            <ellipse cx="175" cy="260" rx="5" ry="3"/><ellipse cx="248" cy="286" rx="5" ry="3"/>
+          </g>
+          <!-- Dirt right side - thicker -->
+          <path d="M560 160 L280 290 L280 340 L560 210 Z" fill="url(#dirtR)"/>
+          <!-- Dirt rocks/pebbles right -->
+          <g fill="#3a2a12" opacity="0.5">
+            <ellipse cx="530" cy="195" rx="8" ry="5"/><ellipse cx="500" cy="208" rx="6" ry="4"/>
+            <ellipse cx="465" cy="222" rx="9" ry="5"/><ellipse cx="430" cy="238" rx="7" ry="4"/>
+            <ellipse cx="395" cy="252" rx="8" ry="5"/><ellipse cx="360" cy="266" rx="6" ry="4"/>
+            <ellipse cx="325" cy="280" rx="8" ry="5"/><ellipse cx="300" cy="290" rx="6" ry="4"/>
+          </g>
+          <g fill="#2a1a0a" opacity="0.3">
+            <ellipse cx="515" cy="210" rx="5" ry="3"/><ellipse cx="450" cy="235" rx="5" ry="3"/>
+            <ellipse cx="385" cy="260" rx="5" ry="3"/><ellipse cx="312" cy="286" rx="5" ry="3"/>
+          </g>
+          <!-- Grass top face -->
+          <path d="M280 40 L560 160 L280 280 L0 160 Z" fill="url(#grassTop)"/>
+          <!-- Lighter grass highlight -->
+          <path d="M280 40 L420 100 L280 160 L140 100 Z" fill="#9de080" opacity="0.15"/>
+          <!-- Grid lines - more visible -->
+          <g stroke="#5a9a4a" stroke-width="1" opacity="0.25">
+            <line x1="56" y1="108" x2="336" y2="228"/><line x1="112" y1="80" x2="392" y2="200"/>
+            <line x1="168" y1="52" x2="448" y2="172"/><line x1="224" y1="68" x2="504" y2="188"/>
+            <line x1="336" y1="108" x2="56" y2="228"/><line x1="392" y1="80" x2="112" y2="200"/>
+            <line x1="448" y1="52" x2="168" y2="172"/><line x1="504" y1="68" x2="224" y2="188"/>
+          </g>
+          <!-- Scattered grass blade tufts on surface -->
+          <g stroke="#5a9a4a" stroke-width="2" stroke-linecap="round" opacity="0.35">
+            <line x1="140" y1="130" x2="138" y2="121"/><line x1="143" y1="130" x2="146" y2="122"/>
+            <line x1="280" y1="100" x2="278" y2="91"/><line x1="283" y1="100" x2="286" y2="92"/>
+            <line x1="420" y1="130" x2="418" y2="121"/><line x1="423" y1="130" x2="426" y2="122"/>
+            <line x1="200" y1="170" x2="198" y2="161"/><line x1="203" y1="170" x2="206" y2="162"/>
+            <line x1="360" y1="170" x2="358" y2="161"/><line x1="363" y1="170" x2="366" y2="162"/>
+            <line x1="280" y1="160" x2="278" y2="151"/><line x1="283" y1="160" x2="286" y2="152"/>
+            <line x1="180" y1="100" x2="178" y2="91"/><line x1="380" y1="100" x2="378" y2="91"/>
+            <line x1="160" y1="200" x2="158" y2="191"/><line x1="400" y1="200" x2="398" y2="191"/>
+            <line x1="240" y1="210" x2="238" y2="201"/><line x1="320" y1="210" x2="318" y2="201"/>
+            <line x1="100" y1="155" x2="98" y2="146"/><line x1="460" y1="155" x2="458" y2="146"/>
+            <line x1="220" y1="130" x2="218" y2="121"/><line x1="340" y1="130" x2="338" y2="121"/>
+            <line x1="280" y1="200" x2="278" y2="191"/><line x1="283" y1="200" x2="286" y2="192"/>
+            <line x1="310" y1="240" x2="308" y2="232"/><line x1="250" y1="240" x2="248" y2="232"/>
+          </g>
+          <!-- Grass overhang on left edge -->
           <g fill="#5a9a4a">
-            <ellipse cx="8" cy="162" rx="7" ry="3"/><ellipse cx="30" cy="172" rx="6" ry="2.5"/><ellipse cx="55" cy="183" rx="7" ry="3"/><ellipse cx="85" cy="196" rx="6" ry="2.5"/><ellipse cx="115" cy="208" rx="7" ry="3"/><ellipse cx="150" cy="222" rx="6" ry="2.5"/><ellipse cx="185" cy="235" rx="7" ry="3"/><ellipse cx="220" cy="248" rx="6" ry="2.5"/><ellipse cx="250" cy="260" rx="7" ry="3"/>
-            <ellipse cx="532" cy="162" rx="7" ry="3"/><ellipse cx="510" cy="172" rx="6" ry="2.5"/><ellipse cx="485" cy="183" rx="7" ry="3"/><ellipse cx="455" cy="196" rx="6" ry="2.5"/><ellipse cx="425" cy="208" rx="7" ry="3"/><ellipse cx="390" cy="222" rx="6" ry="2.5"/><ellipse cx="355" cy="235" rx="7" ry="3"/><ellipse cx="320" cy="248" rx="6" ry="2.5"/><ellipse cx="290" cy="260" rx="7" ry="3"/>
+            <ellipse cx="4" cy="161" rx="10" ry="4"/><ellipse cx="28" cy="172" rx="9" ry="3.5"/>
+            <ellipse cx="52" cy="183" rx="10" ry="4"/><ellipse cx="78" cy="195" rx="9" ry="3.5"/>
+            <ellipse cx="105" cy="207" rx="10" ry="4"/><ellipse cx="133" cy="220" rx="9" ry="3.5"/>
+            <ellipse cx="162" cy="233" rx="10" ry="4"/><ellipse cx="192" cy="246" rx="9" ry="3.5"/>
+            <ellipse cx="222" cy="258" rx="10" ry="4"/><ellipse cx="252" cy="270" rx="9" ry="3.5"/>
+            <ellipse cx="270" cy="278" rx="8" ry="3"/>
+          </g>
+          <!-- Grass overhang on right edge -->
+          <g fill="#4a8a3a">
+            <ellipse cx="556" cy="161" rx="10" ry="4"/><ellipse cx="532" cy="172" rx="9" ry="3.5"/>
+            <ellipse cx="508" cy="183" rx="10" ry="4"/><ellipse cx="482" cy="195" rx="9" ry="3.5"/>
+            <ellipse cx="455" cy="207" rx="10" ry="4"/><ellipse cx="427" cy="220" rx="9" ry="3.5"/>
+            <ellipse cx="398" cy="233" rx="10" ry="4"/><ellipse cx="368" cy="246" rx="9" ry="3.5"/>
+            <ellipse cx="338" cy="258" rx="10" ry="4"/><ellipse cx="308" cy="270" rx="9" ry="3.5"/>
+            <ellipse cx="290" cy="278" rx="8" ry="3"/>
+          </g>
+          <!-- Extra grass tufts hanging over edges -->
+          <g fill="#6ab855" opacity="0.6">
+            <ellipse cx="15" cy="164" rx="6" ry="2.5"/><ellipse cx="45" cy="178" rx="6" ry="2.5"/>
+            <ellipse cx="90" cy="200" rx="6" ry="2.5"/><ellipse cx="145" cy="225" rx="6" ry="2.5"/>
+            <ellipse cx="545" cy="164" rx="6" ry="2.5"/><ellipse cx="515" cy="178" rx="6" ry="2.5"/>
+            <ellipse cx="470" cy="200" rx="6" ry="2.5"/><ellipse cx="415" cy="225" rx="6" ry="2.5"/>
           </g>
         </svg>
       </div>
@@ -733,9 +805,9 @@ function buildIsoForest() {
   for (var row = -3; row <= 3; row++) {
     for (var col = -3; col <= 3; col++) {
       if (Math.abs(row) + Math.abs(col) > 3) continue;
-      var svgX = 270 + (col - row) * 38 + (srand() - 0.5) * 18;
-      var svgY = 160 + (col + row) * 19 + (srand() - 0.5) * 8;
-      positions.push({ x: svgX + 30, y: svgY + 80, type: Math.floor(srand() * isoTrees.length), size: 34 + srand() * 16 });
+      var svgX = 280 + (col - row) * 40 + (srand() - 0.5) * 16;
+      var svgY = 160 + (col + row) * 20 + (srand() - 0.5) * 8;
+      positions.push({ x: svgX + 30, y: svgY + 90, type: Math.floor(srand() * isoTrees.length), size: 36 + srand() * 18 });
     }
   }
   positions.sort(function(a,b){return a.y - b.y;});
