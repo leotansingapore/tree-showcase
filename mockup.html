@@ -1312,7 +1312,7 @@ function buildGallery() {
     // 3D growth stages row
     var stagesDiv = document.createElement('div');
     stagesDiv.className = 'gallery-stages';
-    stagesDiv.style.cssText = 'background:linear-gradient(180deg,#1a3d30,#2a5a4a);min-height:140px;padding:10px 4px;gap:2px;';
+    stagesDiv.style.cssText = 'background:linear-gradient(180deg,#1a3d30,#2a5a4a);min-height:120px;padding:12px 6px 8px;gap:4px;';
     var stageKeys = ['seed', 'sprout', 'small', 'full'];
     for (var i = 0; i < 4; i++) {
       var stageEl = document.createElement('div');
@@ -1320,7 +1320,8 @@ function buildGallery() {
       var img3d = document.createElement('img');
       img3d.src = 'trees/stages/' + sp.id + '_' + stageKeys[i] + '.png';
       img3d.alt = sp.name + ' ' + stageLabels[i];
-      img3d.style.cssText = 'width:72px;height:72px;object-fit:contain;';
+      var stageSizes = [28, 44, 60, 80];
+      img3d.style.cssText = 'width:'+stageSizes[i]+'px;height:'+stageSizes[i]+'px;object-fit:contain;';
       img3d.onerror = function(){ this.style.opacity='0.3'; };
       stageEl.appendChild(img3d);
       var lbl = document.createElement('span');
