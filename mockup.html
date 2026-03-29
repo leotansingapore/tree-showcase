@@ -84,8 +84,11 @@ body {
 .iso-container {
   width: 100%; display: flex; justify-content: center; align-items: flex-end;
   padding: 80px 20px 0; min-height: 520px; overflow: hidden;
-  background: linear-gradient(180deg, #3a6b5a 0%, #4a7b6a 40%, #3d6e5c 100%);
+  background: linear-gradient(180deg, #1a3d30 0%, #1e4a3a 20%, #2a5e48 45%, #3d6e5c 100%);
   position: relative;
+}
+.iso-clouds {
+  position: absolute; top: 0; left: 0; right: 0; height: 120px; pointer-events: none;
 }
 .iso-scene { position: relative; width: 620px; height: 450px; flex-shrink: 0; }
 .iso-tile { position: absolute; left: 50%; bottom: 0; width: 560px; height: 360px; transform: translateX(-50%); }
@@ -243,6 +246,16 @@ body {
   </div>
   <div class="iso-wrap">
     <div class="iso-container">
+      <!-- Atmospheric clouds -->
+      <svg class="iso-clouds" viewBox="0 0 1100 120" preserveAspectRatio="xMidYMid slice" fill="none">
+        <ellipse cx="160" cy="40" rx="90" ry="22" fill="white" opacity="0.04"/>
+        <ellipse cx="200" cy="38" rx="60" ry="18" fill="white" opacity="0.05"/>
+        <ellipse cx="130" cy="42" rx="50" ry="16" fill="white" opacity="0.04"/>
+        <ellipse cx="560" cy="30" rx="110" ry="24" fill="white" opacity="0.03"/>
+        <ellipse cx="600" cy="28" rx="70" ry="19" fill="white" opacity="0.04"/>
+        <ellipse cx="900" cy="45" rx="80" ry="20" fill="white" opacity="0.04"/>
+        <ellipse cx="940" cy="43" rx="55" ry="16" fill="white" opacity="0.035"/>
+      </svg>
       <div class="iso-scene" id="isoScene">
         <svg class="iso-tile" viewBox="0 0 560 360" fill="none">
           <defs>
@@ -327,6 +340,97 @@ body {
             <ellipse cx="90" cy="200" rx="6" ry="2.5"/><ellipse cx="145" cy="225" rx="6" ry="2.5"/>
             <ellipse cx="545" cy="164" rx="6" ry="2.5"/><ellipse cx="515" cy="178" rx="6" ry="2.5"/>
             <ellipse cx="470" cy="200" rx="6" ry="2.5"/><ellipse cx="415" cy="225" rx="6" ry="2.5"/>
+          </g>
+          <!-- Small flowers on grass surface -->
+          <!-- Flower: white petals + yellow center -->
+          <g>
+            <circle cx="150" cy="135" r="3.5" fill="white" opacity="0.85"/>
+            <circle cx="146" cy="132" r="2.5" fill="white" opacity="0.7"/>
+            <circle cx="154" cy="132" r="2.5" fill="white" opacity="0.7"/>
+            <circle cx="150" cy="128" r="2.5" fill="white" opacity="0.7"/>
+            <circle cx="150" cy="133" r="2" fill="#FFD700"/>
+          </g>
+          <g>
+            <circle cx="390" cy="128" r="3" fill="#FFB7C5" opacity="0.9"/>
+            <circle cx="386" cy="125" r="2.2" fill="#FFB7C5" opacity="0.75"/>
+            <circle cx="394" cy="125" r="2.2" fill="#FFB7C5" opacity="0.75"/>
+            <circle cx="390" cy="121" r="2.2" fill="#FFB7C5" opacity="0.75"/>
+            <circle cx="390" cy="126" r="1.8" fill="#FFD700"/>
+          </g>
+          <g>
+            <circle cx="220" cy="175" r="3" fill="white" opacity="0.85"/>
+            <circle cx="216" cy="172" r="2.2" fill="white" opacity="0.7"/>
+            <circle cx="224" cy="172" r="2.2" fill="white" opacity="0.7"/>
+            <circle cx="220" cy="168" r="2.2" fill="white" opacity="0.7"/>
+            <circle cx="220" cy="173" r="1.8" fill="#FFD700"/>
+          </g>
+          <g>
+            <circle cx="340" cy="178" r="3" fill="#FFB7C5" opacity="0.9"/>
+            <circle cx="336" cy="175" r="2.2" fill="#FFB7C5" opacity="0.75"/>
+            <circle cx="344" cy="175" r="2.2" fill="#FFB7C5" opacity="0.75"/>
+            <circle cx="340" cy="171" r="2.2" fill="#FFB7C5" opacity="0.75"/>
+            <circle cx="340" cy="176" r="1.8" fill="#FFD700"/>
+          </g>
+          <g>
+            <circle cx="280" cy="220" r="3.5" fill="white" opacity="0.85"/>
+            <circle cx="276" cy="217" r="2.5" fill="white" opacity="0.7"/>
+            <circle cx="284" cy="217" r="2.5" fill="white" opacity="0.7"/>
+            <circle cx="280" cy="213" r="2.5" fill="white" opacity="0.7"/>
+            <circle cx="280" cy="218" r="2" fill="#FFD700"/>
+          </g>
+          <!-- Mushrooms on grass -->
+          <!-- Red cap mushroom near left -->
+          <g>
+            <rect x="98.5" y="156" width="3.5" height="6" rx="1.5" fill="#e8d5aa"/>
+            <ellipse cx="100.5" cy="156" rx="6" ry="3.5" fill="#c0392b"/>
+            <ellipse cx="100.5" cy="156" rx="3" ry="1.5" fill="white" opacity="0.4"/>
+            <circle cx="98" cy="155" r="0.8" fill="white" opacity="0.6"/>
+            <circle cx="103" cy="154.5" r="0.7" fill="white" opacity="0.6"/>
+          </g>
+          <!-- Mushroom near right -->
+          <g>
+            <rect x="458" y="156" width="3.5" height="6" rx="1.5" fill="#e8d5aa"/>
+            <ellipse cx="459.5" cy="156" rx="6" ry="3.5" fill="#c0392b"/>
+            <ellipse cx="459.5" cy="156" rx="3" ry="1.5" fill="white" opacity="0.4"/>
+            <circle cx="457" cy="155" r="0.8" fill="white" opacity="0.6"/>
+            <circle cx="462" cy="154.5" r="0.7" fill="white" opacity="0.6"/>
+          </g>
+          <!-- Small mushroom center-ish -->
+          <g>
+            <rect x="249" y="194" width="2.5" height="5" rx="1.2" fill="#e8d5aa"/>
+            <ellipse cx="250.5" cy="194" rx="4.5" ry="2.8" fill="#8B4513"/>
+            <circle cx="249" cy="193.5" r="0.6" fill="white" opacity="0.5"/>
+            <circle cx="252" cy="193" r="0.5" fill="white" opacity="0.5"/>
+          </g>
+          <!-- Small grass clumps / tufts more dense -->
+          <g stroke="#4a8a3a" stroke-width="1.5" stroke-linecap="round" opacity="0.5">
+            <line x1="120" y1="148" x2="118" y2="142"/><line x1="122" y1="148" x2="124" y2="142"/>
+            <line x1="310" y1="120" x2="308" y2="114"/><line x1="312" y1="120" x2="314" y2="114"/>
+            <line x1="440" y1="148" x2="438" y2="142"/><line x1="442" y1="148" x2="444" y2="142"/>
+            <line x1="185" y1="195" x2="183" y2="189"/><line x1="187" y1="195" x2="189" y2="189"/>
+            <line x1="375" y1="195" x2="373" y2="189"/><line x1="377" y1="195" x2="379" y2="189"/>
+            <line x1="260" y1="248" x2="258" y2="242"/><line x1="262" y1="248" x2="264" y2="242"/>
+            <line x1="300" y1="248" x2="298" y2="242"/><line x1="302" y1="248" x2="304" y2="242"/>
+          </g>
+          <!-- Butterfly near center-left -->
+          <g opacity="0.75" transform="translate(170, 108)">
+            <ellipse cx="-5" cy="0" rx="6" ry="4" fill="#FFB7C5" transform="rotate(-20 -5 0)"/>
+            <ellipse cx="5" cy="0" rx="6" ry="4" fill="#FFB7C5" transform="rotate(20 5 0)"/>
+            <ellipse cx="-4" cy="2" rx="3.5" ry="2.5" fill="#FF69B4" transform="rotate(-10 -4 2)"/>
+            <ellipse cx="4" cy="2" rx="3.5" ry="2.5" fill="#FF69B4" transform="rotate(10 4 2)"/>
+            <line x1="-1" y1="-1" x2="1" y2="1" stroke="#333" stroke-width="0.8"/>
+            <line x1="-3" y1="-5" x2="-2" y2="-1" stroke="#333" stroke-width="0.6"/>
+            <line x1="3" y1="-5" x2="2" y2="-1" stroke="#333" stroke-width="0.6"/>
+          </g>
+          <!-- Butterfly right side -->
+          <g opacity="0.65" transform="translate(395, 140)">
+            <ellipse cx="-4" cy="0" rx="5" ry="3.2" fill="#87CEEB" transform="rotate(-25 -4 0)"/>
+            <ellipse cx="4" cy="0" rx="5" ry="3.2" fill="#87CEEB" transform="rotate(25 4 0)"/>
+            <ellipse cx="-3" cy="2" rx="3" ry="2" fill="#4169E1" transform="rotate(-10 -3 2)"/>
+            <ellipse cx="3" cy="2" rx="3" ry="2" fill="#4169E1" transform="rotate(10 3 2)"/>
+            <line x1="-1" y1="-1" x2="1" y2="1" stroke="#333" stroke-width="0.7"/>
+            <line x1="-2.5" y1="-4" x2="-1.5" y2="-1" stroke="#333" stroke-width="0.5"/>
+            <line x1="2.5" y1="-4" x2="1.5" y2="-1" stroke="#333" stroke-width="0.5"/>
           </g>
         </svg>
       </div>
@@ -787,14 +891,22 @@ function buildIsoForest() {
   if (!scene) return;
 
   var isoTrees = [
-    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="12" ry="4" fill="#3a6a2a" opacity="0.3"/><rect x="27" y="48" width="6" height="32" rx="3" fill="#6B4F12"/><circle cx="30" cy="32" r="20" fill="#2E8B57"/><circle cx="16" cy="38" r="14" fill="#228B22"/><circle cx="44" cy="38" r="14" fill="#228B22"/><circle cx="22" cy="22" r="12" fill="#3CB371"/><circle cx="38" cy="22" r="12" fill="#3CB371"/><circle cx="30" cy="16" r="10" fill="#2E8B57"/></svg>'; },
-    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="12" ry="4" fill="#8B6B5B" opacity="0.3"/><rect x="27" y="48" width="6" height="32" rx="3" fill="#4A3728"/><circle cx="30" cy="30" r="20" fill="#FFB7C5"/><circle cx="16" cy="38" r="14" fill="#FFC0CB"/><circle cx="44" cy="38" r="14" fill="#FFC0CB"/><circle cx="22" cy="18" r="12" fill="#FF69B4" opacity="0.6"/><circle cx="38" cy="18" r="12" fill="#FF69B4" opacity="0.6"/></svg>'; },
+    // Type 0: Big green oak — with small white flowers on top
+    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="12" ry="4" fill="#3a6a2a" opacity="0.3"/><rect x="27" y="48" width="6" height="32" rx="3" fill="#6B4F12"/><circle cx="30" cy="32" r="20" fill="#2E8B57"/><circle cx="16" cy="38" r="14" fill="#228B22"/><circle cx="44" cy="38" r="14" fill="#228B22"/><circle cx="22" cy="22" r="12" fill="#3CB371"/><circle cx="38" cy="22" r="12" fill="#3CB371"/><circle cx="30" cy="16" r="10" fill="#2E8B57"/><!-- flowers on top --><circle cx="24" cy="13" r="2.5" fill="white" opacity="0.9"/><circle cx="24" cy="13" r="1" fill="#FFD700"/><circle cx="36" cy="10" r="2.2" fill="white" opacity="0.9"/><circle cx="36" cy="10" r="1" fill="#FFD700"/><circle cx="30" cy="7" r="2" fill="#FFB7C5" opacity="0.9"/><circle cx="30" cy="7" r="0.9" fill="#FFD700"/></svg>'; },
+    // Type 1: Cherry blossom — with bird nest + 2 blue eggs
+    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="12" ry="4" fill="#8B6B5B" opacity="0.3"/><rect x="27" y="48" width="6" height="32" rx="3" fill="#4A3728"/><circle cx="30" cy="30" r="20" fill="#FFB7C5"/><circle cx="16" cy="38" r="14" fill="#FFC0CB"/><circle cx="44" cy="38" r="14" fill="#FFC0CB"/><circle cx="22" cy="18" r="12" fill="#FF69B4" opacity="0.6"/><circle cx="38" cy="18" r="12" fill="#FF69B4" opacity="0.6"/><!-- bird nest --><path d="M22 36 Q30 32 38 36" stroke="#8B5E3C" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M23 38 Q30 34 37 38" stroke="#6B3F1C" stroke-width="1.5" fill="none" stroke-linecap="round"/><ellipse cx="27" cy="36" rx="2.5" ry="1.8" fill="#87CEEB"/><ellipse cx="33" cy="35.5" rx="2.5" ry="1.8" fill="#6EC6EA"/></svg>'; },
+    // Type 2: Pine/conifer — unchanged
     function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="10" ry="3" fill="#2a5a2a" opacity="0.3"/><rect x="28" y="60" width="4" height="20" rx="2" fill="#5C4033"/><polygon points="30,8 10,55 50,55" fill="#2F6B3F"/><polygon points="30,18 14,50 46,50" fill="#3a8a4a"/><polygon points="30,28 18,48 42,48" fill="#4a9a5a"/></svg>'; },
-    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="10" ry="3" fill="#8B7355" opacity="0.3"/><path d="M31 78 C30 65 28 50 29 30 C30 20 30 15 30 10" stroke="#A0855B" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M30 10 C20 5 8 14 4 28" stroke="#1a7a3a" stroke-width="2.5" fill="none"/><path d="M30 10 C40 5 52 14 56 28" stroke="#1a7a3a" stroke-width="2.5" fill="none"/><path d="M30 10 C22 2 12 8 6 18" stroke="#228B22" stroke-width="2" fill="none"/><path d="M30 10 C38 2 48 8 54 18" stroke="#228B22" stroke-width="2" fill="none"/><circle cx="28" cy="14" r="3" fill="#8B6914"/></svg>'; },
-    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="12" ry="4" fill="#5C4033" opacity="0.3"/><rect x="27" y="48" width="6" height="32" rx="3" fill="#5C4033"/><circle cx="30" cy="30" r="20" fill="#DC143C"/><circle cx="16" cy="38" r="14" fill="#FF4500"/><circle cx="44" cy="38" r="14" fill="#FF4500"/><circle cx="22" cy="18" r="12" fill="#FF6347"/><circle cx="38" cy="18" r="12" fill="#FF6347"/><circle cx="30" cy="12" r="10" fill="#FF8C00"/></svg>'; },
+    // Type 3: Coconut palm — with tiny birdhouse hanging
+    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="10" ry="3" fill="#8B7355" opacity="0.3"/><path d="M31 78 C30 65 28 50 29 30 C30 20 30 15 30 10" stroke="#A0855B" stroke-width="4" stroke-linecap="round" fill="none"/><path d="M30 10 C20 5 8 14 4 28" stroke="#1a7a3a" stroke-width="2.5" fill="none"/><path d="M30 10 C40 5 52 14 56 28" stroke="#1a7a3a" stroke-width="2.5" fill="none"/><path d="M30 10 C22 2 12 8 6 18" stroke="#228B22" stroke-width="2" fill="none"/><path d="M30 10 C38 2 48 8 54 18" stroke="#228B22" stroke-width="2" fill="none"/><circle cx="28" cy="14" r="3" fill="#8B6914"/><!-- birdhouse --><line x1="42" y1="18" x2="42" y2="22" stroke="#8B5E3C" stroke-width="1"/><rect x="38" y="22" width="8" height="7" rx="1" fill="#A0693A"/><polygon points="38,22 46,22 42,18" fill="#7A4F2A"/><circle cx="42" cy="25.5" r="1.2" fill="#3a2a1a"/></svg>'; },
+    // Type 4: Red maple — with small bird perched on top
+    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="12" ry="4" fill="#5C4033" opacity="0.3"/><rect x="27" y="48" width="6" height="32" rx="3" fill="#5C4033"/><circle cx="30" cy="30" r="20" fill="#DC143C"/><circle cx="16" cy="38" r="14" fill="#FF4500"/><circle cx="44" cy="38" r="14" fill="#FF4500"/><circle cx="22" cy="18" r="12" fill="#FF6347"/><circle cx="38" cy="18" r="12" fill="#FF6347"/><circle cx="30" cy="12" r="10" fill="#FF8C00"/><!-- bird on top --><ellipse cx="30" cy="4" rx="3.5" ry="2.5" fill="#2c2c2c"/><circle cx="31.5" cy="3" r="1.8" fill="#3a3a3a"/><circle cx="32.2" cy="2.6" r="0.5" fill="white"/><path d="M33.5 3.5 L36 3" stroke="#e8a020" stroke-width="1" stroke-linecap="round"/></svg>'; },
+    // Type 5: Banana / palm — unchanged
     function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="10" ry="3" fill="#5C4033" opacity="0.3"/><rect x="27" y="30" width="6" height="50" rx="3" fill="#6B8E23"/><ellipse cx="12" cy="28" rx="16" ry="5" fill="#228B22" transform="rotate(-35 12 28)"/><ellipse cx="48" cy="28" rx="16" ry="5" fill="#228B22" transform="rotate(35 48 28)"/><ellipse cx="10" cy="16" rx="14" ry="4" fill="#32CD32" transform="rotate(-50 10 16)"/><ellipse cx="50" cy="16" rx="14" ry="4" fill="#32CD32" transform="rotate(50 50 16)"/></svg>'; },
+    // Type 6: Crystal / wisteria — unchanged
     function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="10" ry="3" fill="#4B0082" opacity="0.25"/><rect x="27" y="45" width="6" height="35" rx="3" fill="#9370DB"/><polygon points="30,6 18,35 42,35" fill="#BA55D3" stroke="#E6E6FA" stroke-width="0.5"/><polygon points="18,22 8,45 28,45" fill="#9370DB" stroke="#E6E6FA" stroke-width="0.5"/><polygon points="42,22 52,45 32,45" fill="#9370DB" stroke="#E6E6FA" stroke-width="0.5"/><circle cx="30" cy="12" r="2" fill="#fff" opacity="0.6"/></svg>'; },
-    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="12" ry="4" fill="#8B6914" opacity="0.3"/><rect x="27" y="48" width="6" height="32" rx="3" fill="#B8860B"/><circle cx="30" cy="28" r="18" fill="#DAA520"/><circle cx="16" cy="36" r="13" fill="#FFD700"/><circle cx="44" cy="36" r="13" fill="#FFD700"/><circle cx="22" cy="18" r="10" fill="#FADA5E"/><circle cx="38" cy="18" r="10" fill="#FADA5E"/></svg>'; },
+    // Type 7: Golden tree — with pink flowers scattered on canopy
+    function(sz){ return '<svg width="'+sz+'" height="'+(sz*1.4)+'" viewBox="0 0 60 84"><ellipse cx="30" cy="78" rx="12" ry="4" fill="#8B6914" opacity="0.3"/><rect x="27" y="48" width="6" height="32" rx="3" fill="#B8860B"/><circle cx="30" cy="28" r="18" fill="#DAA520"/><circle cx="16" cy="36" r="13" fill="#FFD700"/><circle cx="44" cy="36" r="13" fill="#FFD700"/><circle cx="22" cy="18" r="10" fill="#FADA5E"/><circle cx="38" cy="18" r="10" fill="#FADA5E"/><!-- pink flower tops --><circle cx="22" cy="14" r="2.8" fill="#FF69B4" opacity="0.85"/><circle cx="22" cy="14" r="1.1" fill="#fff"/><circle cx="38" cy="12" r="2.5" fill="#FF1493" opacity="0.8"/><circle cx="38" cy="12" r="1" fill="#fff"/><circle cx="30" cy="10" r="2.2" fill="#FFB6C1" opacity="0.9"/><circle cx="30" cy="10" r="0.9" fill="#FFD700"/></svg>'; },
   ];
 
   var maxTrees = 40;
@@ -812,6 +924,45 @@ function buildIsoForest() {
   }
   positions.sort(function(a,b){return a.y - b.y;});
   positions = positions.slice(0, maxTrees);
+
+  // Ground decorations placed in grid gaps
+  var isoDecorations = [
+    // Small bush
+    function(x, y){ return '<div style="position:absolute;left:'+(x-10)+'px;top:'+(y-14)+'px;z-index:'+Math.floor(y-1)+';pointer-events:none;"><svg width="20" height="16" viewBox="0 0 20 16"><circle cx="10" cy="10" r="7" fill="#2E7D32"/><circle cx="5" cy="11" r="5" fill="#388E3C"/><circle cx="15" cy="11" r="5" fill="#388E3C"/><circle cx="10" cy="7" r="4" fill="#43A047"/></svg></div>'; },
+    // Tiny flower cluster
+    function(x, y){ return '<div style="position:absolute;left:'+(x-8)+'px;top:'+(y-10)+'px;z-index:'+Math.floor(y-1)+';pointer-events:none;"><svg width="16" height="12" viewBox="0 0 16 12"><circle cx="4" cy="8" r="2.5" fill="white" opacity="0.9"/><circle cx="4" cy="8" r="1" fill="#FFD700"/><circle cx="10" cy="7" r="2.2" fill="#FFB7C5" opacity="0.9"/><circle cx="10" cy="7" r="0.9" fill="#FFD700"/><circle cx="7" cy="10" r="2" fill="white" opacity="0.85"/><circle cx="7" cy="10" r="0.8" fill="#FFD700"/></svg></div>'; },
+    // Small rock cluster
+    function(x, y){ return '<div style="position:absolute;left:'+(x-9)+'px;top:'+(y-7)+'px;z-index:'+Math.floor(y-1)+';pointer-events:none;"><svg width="18" height="10" viewBox="0 0 18 10"><ellipse cx="6" cy="7" rx="5" ry="3.5" fill="#7a6a5a"/><ellipse cx="6" cy="6" rx="4" ry="2.5" fill="#9a8a7a"/><ellipse cx="13" cy="7.5" rx="4" ry="3" fill="#6a5a4a"/><ellipse cx="13" cy="6.5" rx="3" ry="2" fill="#8a7a6a"/></svg></div>'; },
+    // Tiny mushroom
+    function(x, y){ return '<div style="position:absolute;left:'+(x-5)+'px;top:'+(y-10)+'px;z-index:'+Math.floor(y-1)+';pointer-events:none;"><svg width="10" height="12" viewBox="0 0 10 12"><rect x="3.5" y="7" width="3" height="5" rx="1.5" fill="#e8d5aa"/><ellipse cx="5" cy="7" rx="5" ry="3.2" fill="#c0392b"/><circle cx="3.5" cy="6.2" r="0.7" fill="white" opacity="0.6"/><circle cx="6.5" cy="5.8" r="0.6" fill="white" opacity="0.6"/></svg></div>'; },
+  ];
+
+  var decSeed = 99;
+  function dsrand() { decSeed = (decSeed * 16807 + 0) % 2147483647; return (decSeed - 1) / 2147483646; }
+
+  // Place decorations at grid points not occupied by trees
+  var treeSet = {};
+  positions.forEach(function(p){ treeSet[Math.round(p.x/20)+','+Math.round(p.y/20)] = true; });
+
+  var decPositions = [];
+  for (var drow = -4; drow <= 4; drow++) {
+    for (var dcol = -4; dcol <= 4; dcol++) {
+      if (Math.abs(drow) + Math.abs(dcol) > 4) continue;
+      var dx = 280 + (dcol - drow) * 40 + (dsrand() - 0.5) * 22 + 30;
+      var dy = 160 + (dcol + drow) * 20 + (dsrand() - 0.5) * 10 + 90;
+      // Skip if too close to a tree position
+      var skip = false;
+      positions.forEach(function(p){ if (Math.abs(p.x-dx)<28 && Math.abs(p.y-dy)<22) skip=true; });
+      if (skip) continue;
+      // Only place some (sparse)
+      if (dsrand() > 0.35) continue;
+      decPositions.push({ x: dx, y: dy, type: Math.floor(dsrand() * isoDecorations.length) });
+    }
+  }
+  decPositions.sort(function(a,b){ return a.y - b.y; });
+  decPositions.forEach(function(p){
+    scene.insertAdjacentHTML('beforeend', isoDecorations[p.type](p.x, p.y));
+  });
 
   positions.forEach(function(p) {
     var div = document.createElement('div');
