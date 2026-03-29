@@ -925,53 +925,84 @@ function buildIsoForest() {
   var seed = 42;
   function srand() { seed = (seed * 16807 + 0) % 2147483647; return (seed - 1) / 2147483646; }
 
-  // Isometric grid mapping onto the diamond grass tile
-  // Reference image proportions: trees spread across full diamond, well spaced
-  // Diamond surface: top ~18%, bottom ~75%, left ~14%, right ~86%
-  var centerX = 50, centerY = 40;
-  var cellDx = 6.0;  // x shift per col in isometric space
-  var cellDy = 3.5;  // y shift per row in isometric space
+  // Diamond surface vertices measured from the 1024x1024 forest-base.png:
+  //   Top:    (512, 175)  → 50.0%, 17.1%
+  //   Right:  (870, 410)  → 85.0%, 40.0%
+  //   Bottom: (512, 645)  → 50.0%, 63.0%
+  //   Left:   (154, 410)  → 15.0%, 40.0%
+  //
+  // Isometric basis vectors (percentage space):
+  //   Along top→right edge (U axis): dx_u = +35/N, dy_u = +23/N per step
+  //   Along top→left edge  (V axis): dx_v = -35/N, dy_v = +23/N per step
+  //
+  // We use U for columns (top-right direction) and V for rows (top-left direction)
+  // Grid origin at top vertex, offset by half-cell inward
+
+  var topX = 50.0, topY = 17.1;
+  // Full edge vectors
+  var uFullX = 35.0, uFullY = 22.9;   // top → right
+  var vFullX = -35.0, vFullY = 22.9;   // top → left
+
+  // Cell step size: divide edges by grid dimensions
+  var uStepX = uFullX / COLS, uStepY = uFullY / COLS;
+  var vStepX = vFullX / ROWS, vStepY = vFullY / ROWS;
 
   // Build subtle grid lines SVG
   var gridSvg = document.getElementById('isoGridOverlay');
-  var gridLines = '';
+  var gridPaths = '';
 
+  // Draw grid lines along U direction (ROWS+1 lines)
+  for (var r = 0; r <= ROWS; r++) {
+    var startX = topX + r * vStepX;
+    var startY = topY + r * vStepY;
+    var endX = startX + COLS * uStepX;
+    var endY = startY + COLS * uStepY;
+    gridPaths += '<line x1="'+(startX*6.5)+'" y1="'+(startY*5)+'" x2="'+(endX*6.5)+'" y2="'+(endY*5)+'" stroke="rgba(255,255,255,0.08)" stroke-width="0.6"/>';
+  }
+  // Draw grid lines along V direction (COLS+1 lines)
+  for (var c = 0; c <= COLS; c++) {
+    var startX = topX + c * uStepX;
+    var startY = topY + c * uStepY;
+    var endX = startX + ROWS * vStepX;
+    var endY = startY + ROWS * vStepY;
+    gridPaths += '<line x1="'+(startX*6.5)+'" y1="'+(startY*5)+'" x2="'+(endX*6.5)+'" y2="'+(endY*5)+'" stroke="rgba(255,255,255,0.08)" stroke-width="0.6"/>';
+  }
+
+  // Alternating cell shading
   for (var row = 0; row < ROWS; row++) {
     for (var col = 0; col < COLS; col++) {
-      // Isometric projection: col goes right-down, row goes left-down
-      var isoCol = col - (COLS - 1) / 2;
-      var isoRow = row - (ROWS - 1) / 2;
-      var px = centerX + (isoCol - isoRow) * cellDx;
-      var py = centerY + (isoCol + isoRow) * cellDy;
+      if ((row + col) % 2 === 0) {
+        // Four corners of this cell
+        var c0x = topX + col * uStepX + row * vStepX;
+        var c0y = topY + col * uStepY + row * vStepY;
+        var c1x = c0x + uStepX, c1y = c0y + uStepY;
+        var c2x = c1x + vStepX, c2y = c1y + vStepY;
+        var c3x = c0x + vStepX, c3y = c0y + vStepY;
+        gridPaths += '<polygon points="'
+          +(c0x*6.5)+','+(c0y*5)+' '
+          +(c1x*6.5)+','+(c1y*5)+' '
+          +(c2x*6.5)+','+(c2y*5)+' '
+          +(c3x*6.5)+','+(c3y*5)
+          +'" fill="rgba(0,0,0,0.04)" stroke="none"/>';
+      }
+    }
+  }
+  gridSvg.innerHTML = gridPaths;
 
-      // Assign varied species and stages
+  // Compute tree positions at cell centers
+  for (var row = 0; row < ROWS; row++) {
+    for (var col = 0; col < COLS; col++) {
+      // Cell center = top vertex + (col + 0.5) * uStep + (row + 0.5) * vStep
+      var px = topX + (col + 0.5) * uStepX + (row + 0.5) * vStepX;
+      var py = topY + (col + 0.5) * uStepY + (row + 0.5) * vStepY;
+
       var speciesIdx = Math.floor(srand() * 5);
       var stageRand = srand();
       var treeStage = stageRand < 0.1 ? 0 : stageRand < 0.25 ? 1 : stageRand < 0.5 ? 2 : 3;
 
       positions.push({ px: px, py: py, speciesIdx: speciesIdx, stage: treeStage, row: row, col: col });
-
-      // Add subtle diamond grid cell to SVG (isometric diamond per cell)
-      var svgX = px * 6.5, svgY = py * 5.0;
-      var dxSvg = cellDx * 6.5 * 0.48, dySvg = cellDy * 5.0 * 0.48;
-      gridLines += '<polygon points="'
-        + svgX+',' + (svgY - dySvg) + ' '
-        + (svgX + dxSvg) + ',' + svgY + ' '
-        + svgX + ',' + (svgY + dySvg) + ' '
-        + (svgX - dxSvg) + ',' + svgY
-        + '" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/>';
-      // Subtle alternating shade for checkerboard feel
-      if ((row + col) % 2 === 0) {
-        gridLines += '<polygon points="'
-          + svgX+',' + (svgY - dySvg) + ' '
-          + (svgX + dxSvg) + ',' + svgY + ' '
-          + svgX + ',' + (svgY + dySvg) + ' '
-          + (svgX - dxSvg) + ',' + svgY
-          + '" fill="rgba(0,0,0,0.03)" stroke="none"/>';
-      }
     }
   }
-  gridSvg.innerHTML = gridLines;
 
   // Sort back-to-front for proper overlap (painter's algorithm)
   positions.sort(function(a,b){return a.py - b.py;});
