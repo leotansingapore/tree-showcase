@@ -245,9 +245,14 @@ body {
     <div class="stat-box"><div class="n" style="color:#fbbf24" id="statPts">0</div><div class="l">Lifetime Points</div></div>
   </div>
   <div class="iso-wrap">
-    <div class="iso-container" style="padding:0;min-height:auto;background:#3a6b5a;align-items:center;justify-content:center;">
-      <!-- 3D Isometric Forest Image (generated) -->
-      <img src="forest-bg.png" alt="Isometric Forest" style="width:100%;max-width:650px;height:auto;display:block;" />
+    <div class="iso-container" style="padding:0;min-height:auto;background:#2a5a4a;align-items:center;justify-content:center;position:relative;">
+      <!-- 3D Isometric Forest Images (4 stages, crossfade on slider) -->
+      <img id="forestImg1" src="forest-1.png" alt="Forest stage 1" style="width:100%;max-width:650px;height:auto;display:block;position:absolute;transition:opacity 0.5s;" />
+      <img id="forestImg2" src="forest-2.png" alt="Forest stage 2" style="width:100%;max-width:650px;height:auto;display:block;position:absolute;transition:opacity 0.5s;opacity:0;" />
+      <img id="forestImg3" src="forest-3.png" alt="Forest stage 3" style="width:100%;max-width:650px;height:auto;display:block;position:absolute;transition:opacity 0.5s;opacity:0;" />
+      <img id="forestImg4" src="forest-4.png" alt="Forest stage 4" style="width:100%;max-width:650px;height:auto;display:block;position:absolute;transition:opacity 0.5s;opacity:0;" />
+      <!-- Invisible spacer to maintain container height -->
+      <img src="forest-1.png" alt="" style="width:100%;max-width:650px;height:auto;display:block;visibility:hidden;" />
       <!-- Old SVG scene kept hidden for slider interaction -->
       <div style="display:none;">
       <svg class="iso-clouds" viewBox="0 0 1100 120" preserveAspectRatio="xMidYMid slice" fill="none">
@@ -441,7 +446,7 @@ body {
     </div>
     <div class="iso-controls">
       <div class="iso-label">Trees planted:</div>
-      <input type="range" class="iso-slider" id="isoSlider" min="0" max="40" value="0">
+      <input type="range" class="iso-slider" id="isoSlider" min="0" max="40" value="3" aria-label="Number of trees planted">
       <div class="iso-count" id="isoCount">0<small>trees</small></div>
     </div>
   </div>
@@ -991,6 +996,25 @@ function buildIsoForest() {
 }
 
 function isoForestUpdate(count) {
+  // Crossfade between 4 pre-rendered 3D forest images
+  var imgs = [
+    document.getElementById('forestImg1'),
+    document.getElementById('forestImg2'),
+    document.getElementById('forestImg3'),
+    document.getElementById('forestImg4')
+  ];
+  // Map 0-40 slider to 4 stages: 0=empty(stage1), 1-10=sparse(stage1), 11-20=medium(stage2), 21-30=full(stage3), 31-40=packed(stage4)
+  var stage;
+  if (count <= 5) stage = 0;
+  else if (count <= 15) stage = 1;
+  else if (count <= 28) stage = 2;
+  else stage = 3;
+
+  imgs.forEach(function(img, i) {
+    if (img) img.style.opacity = (i === stage) ? '1' : '0';
+  });
+
+  // Also update old SVG trees for any remaining interaction
   isoTreeEls.forEach(function(el, i) {
     if (i < count) {
       el.className = 'iso-tree visible';
