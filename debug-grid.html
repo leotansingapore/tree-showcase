@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head><title>Grid Debug</title></head>
+<body style="margin:0;background:#2a4a4a;display:flex;justify-content:center;align-items:center;min-height:100vh;">
+<div id="wrap" style="position:relative;width:90vmin;max-width:900px;">
+  <img src="forest-base.png" style="width:100%;display:block;" />
+  <canvas id="cv" style="position:absolute;top:0;left:0;width:100%;height:100%;"></canvas>
+</div>
+<script>
+var img = document.querySelector('img');
+img.onload = draw;
+if (img.complete) draw();
+
+function draw() {
+  var cv = document.getElementById('cv');
+  var wrap = document.getElementById('wrap');
+  var w = img.naturalWidth, h = img.naturalHeight;
+  cv.width = w; cv.height = h;
+  var ctx = cv.getContext('2d');
+
+  // Calibrated diamond vertices (percentage → pixels)
+  var topX=0.49*w, topY=0.25*h;
+  var rightX=0.82*w, rightY=0.415*h;
+  var leftX=0.16*w, leftY=0.415*h;
+  var bottomX=0.48*w, bottomY=0.60*h;
+
+  var ROWS=5, COLS=6;
+  var uFullX=rightX-topX, uFullY=rightY-topY;
+  var vFullX=leftX-topX, vFullY=leftY-topY;
+  var usx=uFullX/COLS, usy=uFullY/COLS;
+  var vsx=vFullX/ROWS, vsy=vFullY/ROWS;
+
+  // Draw grid lines
+  ctx.strokeStyle = 'rgba(255,80,80,0.7)';
+  ctx.lineWidth = 2;
+  for (var r=0; r<=ROWS; r++) {
+    var sx=topX+r*vsx, sy=topY+r*vsy;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx+COLS*usx, sy+COLS*usy);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(80,80,255,0.7)';
+  for (var c=0; c<=COLS; c++) {
+    var sx=topX+c*usx, sy=topY+c*usy;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx+ROWS*vsx, sy+ROWS*vsy);
+    ctx.stroke();
+  }
+
+  // Cell center dots
+  ctx.fillStyle = 'orange';
+  for (var r=0; r<ROWS; r++) {
+    for (var c=0; c<COLS; c++) {
+      var cx = topX + (c+0.5)*usx + (r+0.5)*vsx;
+      var cy = topY + (c+0.5)*usy + (r+0.5)*vsy;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 6, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  // Vertex dots
+  [[topX,topY,'red'],[rightX,rightY,'blue'],[bottomX,bottomY,'yellow'],[leftX,leftY,'lime']].forEach(function(v){
+    ctx.fillStyle = v[2];
+    ctx.beginPath();
+    ctx.arc(v[0], v[1], 10, 0, Math.PI*2);
+    ctx.fill();
+  });
+}
+</script>
+</body>
+</html>
