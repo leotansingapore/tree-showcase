@@ -941,17 +941,24 @@ function buildIsoForest() {
   positions.sort(function(a,b){return a.py - b.py;});
   positions = positions.slice(0, maxTrees);
 
-  // Place trees in the overlay container using percentage positioning
+  // Place 3D tree images in the overlay container using percentage positioning
   var overlay = document.getElementById('isoTreeOverlay');
+
+  // Map tree types to species IDs for 3D images
+  var treeSpeciesIds = ['mighty_oak', 'cherry_blossom', 'coconut_palm', 'banana_plant', 'apple_tree',
+    'mighty_oak', 'cherry_blossom', 'coconut_palm'];
 
   positions.forEach(function(p) {
     var div = document.createElement('div');
-    div.style.cssText = 'position:absolute;left:'+p.px+'%;top:'+p.py+'%;transform:translate(-50%,-100%) scale(1);transition:opacity 0.4s cubic-bezier(0.34,1.56,0.64,1),transform 0.4s cubic-bezier(0.34,1.56,0.64,1);opacity:0;z-index:'+Math.floor(p.py*10)+';pointer-events:auto;cursor:pointer;filter:drop-shadow(0 2px 2px rgba(0,0,0,0.2));';
-    // Use percentage-based size
-    var szPx = Math.round(p.sizePct * 6.5); // approximate pixel size for SVG rendering
-    var template = document.createElement('template');
-    template.innerHTML = isoTrees[p.type](szPx).trim();
-    div.appendChild(template.content.firstChild);
+    var speciesId = treeSpeciesIds[p.type % treeSpeciesIds.length];
+    var stageKey = ['seed', 'sprout', 'small', 'full'][p.stage || 3];
+    div.style.cssText = 'position:absolute;left:'+p.px+'%;top:'+p.py+'%;transform:translate(-50%,-85%) scale(1);transition:opacity 0.4s cubic-bezier(0.34,1.56,0.64,1),transform 0.4s cubic-bezier(0.34,1.56,0.64,1);opacity:0;z-index:'+Math.floor(p.py*10)+';pointer-events:auto;cursor:pointer;';
+    var img = document.createElement('img');
+    img.src = 'trees/stages/' + speciesId + '_' + stageKey + '.png';
+    img.alt = speciesId;
+    img.style.cssText = 'width:'+Math.round(p.sizePct * 1.2)+'%;max-width:80px;height:auto;display:block;filter:drop-shadow(0 3px 3px rgba(0,0,0,0.25));';
+    img.draggable = false;
+    div.appendChild(img);
     overlay.appendChild(div);
     isoTreeEls.push(div);
   });
