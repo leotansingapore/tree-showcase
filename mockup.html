@@ -1246,13 +1246,25 @@ function buildGallery() {
     costEl.innerHTML = sp.unlockPts === 0 ? '<b>FREE</b> — Starter' : '<b>' + sp.unlockPts + ' pts</b> to unlock';
     card.appendChild(costEl);
 
+    // 3D rendered image
+    var imgWrap = document.createElement('div');
+    imgWrap.style.cssText = 'background:linear-gradient(180deg,#1a3d30,#2a5a4a);border-radius:12px;padding:12px;margin-bottom:10px;text-align:center;';
+    var img3d = document.createElement('img');
+    img3d.src = 'trees/' + sp.id + '.png';
+    img3d.alt = sp.name;
+    img3d.style.cssText = 'width:140px;height:140px;object-fit:contain;display:inline-block;';
+    img3d.onerror = function(){ this.style.display='none'; };
+    imgWrap.appendChild(img3d);
+    card.appendChild(imgWrap);
+
+    // SVG growth stages row
     var stagesDiv = document.createElement('div');
     stagesDiv.className = 'gallery-stages';
     for (var i = 0; i < 4; i++) {
       var stageEl = document.createElement('div');
       stageEl.className = 'gallery-stage';
       var tpl = document.createElement('template');
-      tpl.innerHTML = treeSVG(sp.id, i, 56).trim();
+      tpl.innerHTML = treeSVG(sp.id, i, 44).trim();
       stageEl.appendChild(tpl.content.firstChild);
       var lbl = document.createElement('span');
       lbl.className = 'gallery-stage-lbl';
