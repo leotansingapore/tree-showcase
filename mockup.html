@@ -932,10 +932,10 @@ function buildIsoForest() {
   //   Left:   11.3%, 41.2%
   //
   // Inset from measured edges so trees stay on grass, not on border bushes
-  var topX = 49.0, topY = 25.0;
-  var rightX = 82.0, rightY = 41.5;
-  var bottomX = 48.0, bottomY = 60.0;
-  var leftX = 16.0, leftY = 41.5;
+  var topX = 49.0, topY = 23.0;
+  var rightX = 80.0, rightY = 39.0;
+  var bottomX = 48.0, bottomY = 55.0;
+  var leftX = 18.0, leftY = 39.0;
 
   // Basis vectors from top vertex
   // U axis: top → right (columns go top-right)
@@ -1011,7 +1011,7 @@ function buildIsoForest() {
     img.src = 'trees/stages/' + speciesId + '_' + stageKey + '.png';
     img.alt = speciesId + ' (Day ' + (p.row * COLS + p.col + 1) + ')';
     img.title = 'Day ' + (p.row * COLS + p.col + 1) + ' — ' + speciesId.replace(/_/g, ' ');
-    var imgSize = p.stage === 0 ? 38 : p.stage === 1 ? 50 : p.stage === 2 ? 62 : 75;
+    var imgSize = p.stage === 0 ? 30 : p.stage === 1 ? 40 : p.stage === 2 ? 52 : 62;
     img.style.cssText = 'width:'+imgSize+'px;height:auto;display:block;filter:drop-shadow(0 3px 3px rgba(0,0,0,0.25));';
     img.draggable = false;
     div.appendChild(img);
